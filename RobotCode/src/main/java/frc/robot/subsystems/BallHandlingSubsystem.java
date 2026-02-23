@@ -34,8 +34,8 @@ public class BallHandlingSubsystem extends SubsystemBase {
   private DoubleSolenoid PickupSolenoid;
   private boolean PickupOut = false;
 
-  // private SparkClosedLoopController ShooterPIDController;
-  // private RelativeEncoder ShooterEncoder;
+  private SparkClosedLoopController ShooterPIDController;
+  private RelativeEncoder ShooterEncoder;
 
   /** Creates a new BallHandlingSubsystem. */
   public BallHandlingSubsystem() {
@@ -62,18 +62,19 @@ public class BallHandlingSubsystem extends SubsystemBase {
     BottomFeederMotor.configure(BottomFeederMotorConfig, ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
 
-    // ShooterPIDController = ShooterMotor.getClosedLoopController();
-    // ShooterEncoder = ShooterMotor.getEncoder();
-    // ShooterMotorConfig = new SparkMaxConfig();
-    // ShooterMotorConfig.encoder.velocityConversionFactor(1);
+    ShooterPIDController = ShooterMotor.getClosedLoopController();
+    ShooterEncoder = ShooterMotor.getEncoder();
+    ShooterMotorConfig = new SparkMaxConfig();
+    ShooterMotorConfig.encoder.velocityConversionFactor(1);
 
-    // ShooterMotorConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-    // .p(Constants.ShooterConstants.proportialPIDConstant)
-    // .i(Constants.ShooterConstan3ts.integralPIDConstant)
-    // .d(Constants.ShooterConstants.derivativePIDConstant)
-    // .outputRange(Constants.ShooterConstants.minPIDOutput,
-    // Constants.ShooterConstants.maxPIDOutput)
-    // .feedForward.kV(12.0 / 5767);
+    ShooterMotorConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .p(Constants.ShooterConstants.proportialPIDConstant)
+        .i(Constants.ShooterConstants.integralPIDConstant)
+        .d(Constants.ShooterConstants.derivativePIDConstant)
+        .outputRange(Constants.ShooterConstants.minPIDOutput, Constants.ShooterConstants.maxPIDOutput).feedForward
+        .kV(12.0 / 5767);
+
+    ShooterMotor.configure(ShooterMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
     Compressor = new Compressor(Constants.PneumaticsConstants.CompressorCanID, PneumaticsModuleType.CTREPCM);
     PickupSolenoid = new DoubleSolenoid(Constants.PneumaticsConstants.CompressorCanID, PneumaticsModuleType.CTREPCM,
@@ -93,23 +94,15 @@ public class BallHandlingSubsystem extends SubsystemBase {
   }
 
   public boolean shooterAtVelocity() {
-
-    if (ShooterMotor.getEncoder().getVelocity() >= 2750)
-      return true;
-    else
-      return false;
-    // return false;// ShooterPIDController.isAtSetpoint();
-  }
-
-  public void toggleShooterVelocity(double velocity) {
-    // if(ShooterPIDController.getSetpoint() == 0)
-    // ShooterPIDController.setSetpoint(velocity, ControlType.kVelocity);
+    // if (ShooterMotor.getEncoder().getVelocity() >= 2750)
+    // return true;
     // else
-    // ShooterPIDController.setSetpoint(0, ControlType.kVelocity);
+    // return false;
+    return ShooterPIDController.isAtSetpoint();
   }
 
   public void setShooterVelocity(double velocity) {
-    // ShooterPIDController.setSetpoint(velocity, ControlType.kVelocity);
+    ShooterPIDController.setSetpoint(velocity, ControlType.kVelocity);
   }
 
   public void runPickup(double speed) {
@@ -137,5 +130,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Shooter RPM", ShooterMotor.getEncoder().getVelocity());
+    SmartDashboard.putNumber("Shooter Setpoint", ShooterPIDController.getSetpoint());
+    SmartDashboard.putBoolean("Shooter At Setpoint", ShooterPIDController.isAtSetpoint());
   }
 }

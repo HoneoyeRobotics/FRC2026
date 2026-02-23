@@ -28,8 +28,7 @@ public final class Constants {
     public static final double integralPIDConstant = 0.0;
     public static final double derivativePIDConstant = 0.0;
     public static final double integralPIDZone = 0.0;
-    public static final double leftFeedForwardPIDConstant = 0.000175;
-    public static final double rightFeedForwardPIDConstant = 0.000170;
+    public static final double FeedForwardPIDConstant = 0.000175;
     public static final double maxPIDOutput = 1.0;
     public static final double minPIDOutput = 0.0;
     public static final double velocityPIDTolerance = 30;
@@ -53,8 +52,8 @@ public final class Constants {
   public static final class DriveConstants {
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
-    public static final double kMaxSpeedMetersPerSecond = 4.8;
-    public static final double kMaxAngularSpeed = 2 * Math.PI; // radians per second
+    public static final double kMaxSpeedMetersPerSecond = 4.8 / 4;
+    public static final double kMaxAngularSpeed = 2 * Math.PI / 2; // radians per second
 
     // Chassis configuration
     public static final double kTrackWidth = Units.inchesToMeters(26);

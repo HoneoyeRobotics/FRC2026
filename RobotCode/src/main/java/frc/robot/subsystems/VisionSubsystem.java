@@ -5,57 +5,70 @@
 package frc.robot.subsystems;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonUtils;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class VisionSubsystem extends SubsystemBase {
   /** Creates a new VisionSubsystem. */
-  public VisionSubsystem() {}
-  private PhotonCamera camera = new PhotonCamera("LeftAprilTagCamera");
+  public VisionSubsystem() {
+  }
 
+  private PhotonCamera LeftAprilTagCamera = new PhotonCamera("LeftAprilTagCamera");
+  private PhotonCamera RightAprilTagCamera = new PhotonCamera("RightAprilTagCamera");
+  public static final AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+  public static final Transform3d kRobotToCam = new Transform3d(new Translation3d(0.5, 0.0, 0.5),
+      new Rotation3d(0, 0, 0));
+  private PhotonPoseEstimator LeftPoseEstimator = new PhotonPoseEstimator(kTagLayout, kRobotToCam);
 
+  private PhotonPoseEstimator RightPoseEstimator = new PhotonPoseEstimator(kTagLayout, kRobotToCam);
 
-public double getAngleToGoal(){
-//  var results = camera.getAllUnreadResults();
-//     for (var result : results) {
-//       var multiTagResult = result.getMultiTagResult();
-//       if (multiTagResult.isPresent()) {
-//           var fieldToCamera = multiTagResult.get().estimatedPose.best;        
+  public double getAngleToGoal() {
+    // var results = camera.getAllUnreadResults();
+    // for (var result : results) {
+    // var multiTagResult = result.getMultiTagResult();
+    // if (multiTagResult.isPresent()) {
+    // var fieldToCamera = multiTagResult.get().estimatedPose.best;
 
-//          double x = fieldToCamera.getX();
-//         double y = fieldToCamera.getY();
+    // double x = fieldToCamera.getX();
+    // double y = fieldToCamera.getY();
 
-//         double angle  = Math.atan((4.035-y)/ (4.626-x)) * -1;
-//         return Math.toDegrees(angle);
+    // double angle = Math.atan((4.035-y)/ (4.626-x)) * -1;
+    // return Math.toDegrees(angle);
 
-//       }
-//     }
+    // }
+    // }
 
-//     return 9999;
+    // return 9999;
 
-  return angleToGoal;
-}
+    return angleToGoal;
+  }
 
-private double angleToGoal = 9999;
+  private double angleToGoal = 9999;
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-            var latestResult = camera.getLatestResult();
+    var latestResult = LeftAprilTagCamera.getLatestResult();
 
-
-    SmartDashboard.putBoolean("Has Target",  latestResult.hasTargets());
+    SmartDashboard.putBoolean("Has Target", latestResult.hasTargets());
     boolean multiTagPresent = false;
-    var results = camera.getAllUnreadResults();
+    var results = LeftAprilTagCamera.getAllUnreadResults();
     for (var result : results) {
       var multiTagResult = result.getMultiTagResult();
       if (multiTagResult.isPresent()) {
         multiTagPresent = true;
-        var fieldToCamera = multiTagResult.get().estimatedPose.best;        
+        var fieldToCamera = multiTagResult.get().estimatedPose.best;
 
         SmartDashboard.putNumber("F2C - X", fieldToCamera.getX());
         SmartDashboard.putNumber("F2C - Y", fieldToCamera.getY());
@@ -65,20 +78,23 @@ private double angleToGoal = 9999;
         double x = fieldToCamera.getX();
         double y = fieldToCamera.getY();
 
-        double angle  = Math.toDegrees(Math.atan((4.035-y)/ (4.626-x)) * -1);
+        double angle = Math.toDegrees(Math.atan((4.035 - y) / (4.626 - x)) * -1);
         angleToGoal = angle;
-        SmartDashboard.putNumber("Target Angle",angleToGoal);
+        SmartDashboard.putNumber("Target Angle", angleToGoal);
       }
     }
     SmartDashboard.putBoolean("Multitag Is present", multiTagPresent);
 
-//   Pose3d robotPose = PhotonUtils.estimateFieldToRobotAprilTag(target.getBestCameraToTarget(), aprilTagFieldLayout.getTagPose(target.getFiducialId()).get(), cameraToRobot);
+    // Pose3d robotPose =
+    // PhotonUtils.estimateFieldToRobotAprilTag(target.getBestCameraToTarget(),
+    // aprilTagFieldLayout.getTagPose(target.getFiducialId()).get(), cameraToRobot);
 
-// double distanceToTarget = PhotonUtils.getDistanceToPose(robotPose, targetPose);
+    // double distanceToTarget = PhotonUtils.getDistanceToPose(robotPose,
+    // targetPose);
 
-//     Translation2d translation = PhotonUtils.estimateCameraToTargetTranslation(
-//   distanceMeters, Rotation2d.fromDegrees(-target.getYaw()));
-// Rotation2d targetYaw = PhotonUtils.getYawToPose(robotPose, targetPose);
+    // Translation2d translation = PhotonUtils.estimateCameraToTargetTranslation(
+    // distanceMeters, Rotation2d.fromDegrees(-target.getYaw()));
+    // Rotation2d targetYaw = PhotonUtils.getYawToPose(robotPose, targetPose);
 
   }
 }
