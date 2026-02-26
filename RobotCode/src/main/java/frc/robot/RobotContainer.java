@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.Constants.AutoConstants;
@@ -43,6 +44,8 @@ public class RobotContainer {
   // The driver's controller
   CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
   CommandJoystick m_ButtonBoard = new CommandJoystick(1);
+  CommandXboxController m_driverController2 = new CommandXboxController(2);
+  private final Climber m_climber = new Climber();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -68,9 +71,9 @@ public class RobotContainer {
 
     // right bumper is the go fast button
     m_driverController.leftBumper().whileTrue(new RotateToGoal(m_robotDrive, m_visionSubsystem));
-    //picks up balls
+    // picks up balls
     m_driverController.a().whileTrue(new PickupBalls(m_BallHandlingSubsystem, 0.66));
-    //spits balls out pickup
+    // spits balls out pickup
     m_driverController.b().whileTrue(new PickupBalls(m_BallHandlingSubsystem, -0.66));
 
     // m_driverController.x().whileTrue(new RunCommand(() ->
@@ -94,11 +97,13 @@ public class RobotContainer {
 
     // pull balls back in from shooter into kicker
     m_ButtonBoard.button(3).whileTrue(new ManualShootControl(m_BallHandlingSubsystem, -0.5));
-    // shoooooooot
-    m_ButtonBoard.button(7).whileTrue(new ManualShootControl(m_BallHandlingSubsystem, 0.75));
+    // shoooooooot at a velocity
+    m_ButtonBoard.button(7).whileTrue(new RunShooterAtVelocity(m_BallHandlingSubsystem));
 
     m_ButtonBoard.button(1).whileTrue(new RunShootSequence(m_BallHandlingSubsystem));
     m_ButtonBoard.button(2).onTrue(new TogglePickupSolenoid(m_BallHandlingSubsystem));
+    m_climber.setDefaultCommand(new MoveClimber(m_climber, () -> m_driverController2.getRightY()));
+
   }
 
   /**

@@ -40,6 +40,7 @@ public final class Constants {
     public static final int BottomFeederCanID = 20;
     public static final int ColumnFeederCanID = 23;
     public static final int ColumnKickerCanID = 16;
+    public static final int ClimberMotorCanID = 14;
     public static final int ShooterCanID = 25;
   }
 
