@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -13,17 +12,15 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -38,14 +35,14 @@ import java.util.List;
  */
 public class RobotContainer {
   // The robot's subsystems
-  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final VisionSubsystem m_visionSubsystem = new VisionSubsystem();
-  private final BallHandlingSubsystem m_BallHandlingSubsystem = new BallHandlingSubsystem();
+  private final DriveSubsystem driveSubsystem = new DriveSubsystem();
+  private final VisionSubsystem visionSubsystem = new VisionSubsystem(driveSubsystem::addVisionMeasurement);
+  private final BallHandlingSubsystem BallHandlingSubsystem = new BallHandlingSubsystem();
   // The driver's controller
-  CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
-  CommandJoystick m_ButtonBoard = new CommandJoystick(1);
-  CommandXboxController m_driverController2 = new CommandXboxController(2);
-  private final Climber m_climber = new Climber();
+  CommandXboxController driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
+  CommandJoystick ButtonBoard = new CommandJoystick(1);
+  CommandXboxController driverController2 = new CommandXboxController(2);
+  private final Climber climber = new Climber();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -55,7 +52,7 @@ public class RobotContainer {
     configureButtonBindings();
 
     // Configure default commands
-    m_robotDrive.setDefaultCommand(new TeleopDrive(m_robotDrive, m_driverController));
+    driveSubsystem.setDefaultCommand(new TeleopDrive(driveSubsystem, driverController));
   }
 
   /**
@@ -70,39 +67,42 @@ public class RobotContainer {
   private void configureButtonBindings() {
 
     // right bumper is the go fast button
-    m_driverController.leftBumper().whileTrue(new RotateToGoal(m_robotDrive, m_visionSubsystem));
+    driverController.leftBumper().whileTrue(new RotateToGoal(driveSubsystem, visionSubsystem));
     // picks up balls
-    m_driverController.a().whileTrue(new PickupBalls(m_BallHandlingSubsystem, 0.66));
+    driverController.a().whileTrue(new PickupBalls(BallHandlingSubsystem, 0.66));
     // spits balls out pickup
-    m_driverController.b().whileTrue(new PickupBalls(m_BallHandlingSubsystem, -0.66));
+    driverController.b().whileTrue(new PickupBalls(BallHandlingSubsystem, -0.66));
 
-    // m_driverController.x().whileTrue(new RunCommand(() ->
-    // m_robotDrive.setX(),m_robotDrive));
-    m_driverController.back().onTrue(new InstantCommand(() -> m_robotDrive.zeroHeading(), m_robotDrive));
+    // driverController.x().whileTrue(new RunCommand(() ->
+    // driveSubsystem.setX(),driveSubsystem));
+    driverController.back().onTrue(new InstantCommand(() -> driveSubsystem.zeroHeading(), driveSubsystem));
     // get balls out of column
 
-    m_ButtonBoard.button(6).whileTrue(new RunBottomFeeder(m_BallHandlingSubsystem, -0.5));
+    ButtonBoard.button(6).whileTrue(new RunBottomFeeder(BallHandlingSubsystem, -0.5));
     // move the balls from the bottom into the column
-    m_ButtonBoard.button(10).whileTrue(new RunBottomFeeder(m_BallHandlingSubsystem, 1));
+    ButtonBoard.button(10).whileTrue(new RunBottomFeeder(BallHandlingSubsystem, 1));
 
     // run the column to bring the balls back into the hopper
-    m_ButtonBoard.button(5).whileTrue(new RunColumnFeeder(m_BallHandlingSubsystem, -0.5));
+    ButtonBoard.button(5).whileTrue(new RunColumnFeeder(BallHandlingSubsystem, -0.5));
     // run the column so the balls come up to the kicker
-    m_ButtonBoard.button(9).whileTrue(new RunColumnFeeder(m_BallHandlingSubsystem, 0.5));
+    ButtonBoard.button(9).whileTrue(new RunColumnFeeder(BallHandlingSubsystem, 0.5));
 
     // run the kicker to bring the balls back into the column
-    m_ButtonBoard.button(4).whileTrue(new RunColumnKicker(m_BallHandlingSubsystem, -0.5));
+    ButtonBoard.button(4).whileTrue(new RunColumnKicker(BallHandlingSubsystem, -0.5));
     // bring the balls from the column into the shooter
-    m_ButtonBoard.button(8).whileTrue(new RunColumnKicker(m_BallHandlingSubsystem, 0.5));
+    ButtonBoard.button(8).whileTrue(new RunColumnKicker(BallHandlingSubsystem, 0.5));
 
     // pull balls back in from shooter into kicker
-    m_ButtonBoard.button(3).whileTrue(new ManualShootControl(m_BallHandlingSubsystem, -0.5));
+    ButtonBoard.button(3).whileTrue(new ManualShootControl(BallHandlingSubsystem, -0.5));
     // shoooooooot at a velocity
-    m_ButtonBoard.button(7).whileTrue(new RunShooterAtVelocity(m_BallHandlingSubsystem));
+    ButtonBoard.button(7).whileTrue(new RunShooterAtVelocity(BallHandlingSubsystem));
 
-    m_ButtonBoard.button(1).whileTrue(new RunShootSequence(m_BallHandlingSubsystem));
-    m_ButtonBoard.button(2).onTrue(new TogglePickupSolenoid(m_BallHandlingSubsystem));
-    m_climber.setDefaultCommand(new MoveClimber(m_climber, () -> m_driverController2.getRightY()));
+    ButtonBoard.button(1).whileTrue(new RunShootSequence(BallHandlingSubsystem));
+    ButtonBoard.button(2).onTrue(new TogglePickupSolenoid(BallHandlingSubsystem));
+    climber.setDefaultCommand(new MoveClimber(climber, () -> driverController2.getRightY()));
+
+    driverController2.y().onTrue(Commands.runOnce(() -> BallHandlingSubsystem.setShooterVelocityCommand(2700)));
+    driverController2.x().onTrue(Commands.runOnce(() -> BallHandlingSubsystem.setShooterVelocityCommand(0)));
 
   }
 
@@ -135,20 +135,20 @@ public class RobotContainer {
 
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
         exampleTrajectory,
-        m_robotDrive::getPose, // Functional interface to feed supplier
+        driveSubsystem::getPose, // Functional interface to feed supplier
         DriveConstants.kDriveKinematics,
 
         // Position controllers
         new PIDController(AutoConstants.kPXController, 0, 0),
         new PIDController(AutoConstants.kPYController, 0, 0),
         thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
+        driveSubsystem::setModuleStates,
+        driveSubsystem);
 
     // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+    driveSubsystem.resetOdometry(exampleTrajectory.getInitialPose());
 
     // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false, false));
+    return swerveControllerCommand.andThen(() -> driveSubsystem.drive(0, 0, 0, false, false));
   }
 }

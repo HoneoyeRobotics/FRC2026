@@ -15,8 +15,10 @@ public class PickupBalls extends Command {
 
   /***
    * This command runs the front pickup motors
+   * 
    * @param ballHandlingSubsystem Required ball handling subsystem
-   * @param speed Speed that the pickup runs at. Positive values bring balls into the robot.
+   * @param speed                 Speed that the pickup runs at. Positive values
+   *                              bring balls into the robot.
    */
   public PickupBalls(BallHandlingSubsystem ballHandlingSubsystem, double speed) {
     // Use addRequirements() here to declare subsystem dependencies.

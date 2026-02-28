@@ -9,30 +9,30 @@ import frc.robot.subsystems.BallHandlingSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ShootBalls extends Command {
-    private final BallHandlingSubsystem m_BallHandlingSubsystem;
+  private final BallHandlingSubsystem ballHandlingSubsystem;
 
   /** Creates a new ShootBalls. */
   public ShootBalls(BallHandlingSubsystem ballHandlingSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
-     addRequirements(ballHandlingSubsystem);
-    m_BallHandlingSubsystem = ballHandlingSubsystem;
+    addRequirements(ballHandlingSubsystem);
+    this.ballHandlingSubsystem = ballHandlingSubsystem;
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {    
+  public void initialize() {
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_BallHandlingSubsystem.runShooter(0.75);
+    ballHandlingSubsystem.runShooter(0.75);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_BallHandlingSubsystem.runShooter(0);
+    ballHandlingSubsystem.runShooter(0);
 
   }
 

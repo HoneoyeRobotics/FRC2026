@@ -13,34 +13,36 @@ import frc.robot.subsystems.Climber;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class MoveClimber extends Command {
 
-  private final Climber m_climber;
-   private final DoubleSupplier m_movementSupplier;
+  private final Climber climber;
+  private final DoubleSupplier movementSupplier;
+
   /** Creates a new RunClimber. */
   public MoveClimber(Climber climber, DoubleSupplier movementSupplier) {
     // Use addRequirements() here to declare subsystem dependencies.
-    m_movementSupplier = movementSupplier;
-    m_climber = climber;
-    addRequirements(m_climber);
+    this.movementSupplier = movementSupplier;
+    this.climber = climber;
+    addRequirements(climber);
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
 
-    double newSpeed = m_movementSupplier.getAsDouble();
+    double newSpeed = movementSupplier.getAsDouble();
 
-    m_climber.MoveClimber(MathUtil.applyDeadband(newSpeed, 0.05));
+    climber.MoveClimber(MathUtil.applyDeadband(newSpeed, 0.05));
 
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_climber.MoveClimber(0);
+    climber.MoveClimber(0);
 
   }
 

@@ -8,35 +8,37 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.BallHandlingSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class RunColumnKicker extends Command {    
-  
-  private final BallHandlingSubsystem m_BallHandlingSubsystem;
-private final double m_Speed;
+public class RunColumnKicker extends Command {
+
+  private final BallHandlingSubsystem ballHandlingSubsystem;
+  private final double Speed;
+
   /** Creates a new RunBottomFeeder. */
   public RunColumnKicker(BallHandlingSubsystem ballHandlingSubsystem, double Speed) {
     // Use addRequirements() here to declare subsystem dependencies.
-    //  addRequirements(ballHandlingSubsystem);
-    m_BallHandlingSubsystem = ballHandlingSubsystem;
-m_Speed = Speed;
+    // addRequirements(ballHandlingSubsystem);
+    this.ballHandlingSubsystem = ballHandlingSubsystem;
+    this.Speed = Speed;
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-  
+
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_BallHandlingSubsystem.moveColumnKicker(m_Speed);
+    ballHandlingSubsystem.moveColumnKicker(Speed);
 
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_BallHandlingSubsystem.moveColumnKicker(0);}
+    ballHandlingSubsystem.moveColumnKicker(0);
+  }
 
   // Returns true when the command should end.
   @Override

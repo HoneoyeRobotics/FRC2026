@@ -11,7 +11,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants;
-import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
 
@@ -20,7 +19,7 @@ public class TeleopDrive extends Command {
   private final DriveSubsystem driveSubsystem;
 
   private final CommandXboxController driverController;
-  private PhotonCamera camera = new PhotonCamera("Arducam_OV9281_USB_Camera");
+  private PhotonCamera camera = new PhotonCamera("ArducaOV9281_USB_Camera");
 
   /** Creates a new CenterOnAprilTag. */
   public TeleopDrive(DriveSubsystem driveSubsystem, CommandXboxController driverController) {
@@ -107,7 +106,7 @@ public class TeleopDrive extends Command {
     );
   }
 
-  // public double limelight_aim_proportional() {
+  // public double limelight_aiproportional() {
   //   // kP (constant of proportionality)
   //   // this is a hand-tuned number that determines the aggressiveness of our
   //   // proportional control loop

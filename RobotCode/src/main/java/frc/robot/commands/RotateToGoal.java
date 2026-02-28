@@ -13,22 +13,25 @@ import frc.robot.subsystems.*;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class RotateToGoal extends Command {
   /** Creates a new RotateTogoal. */
-  private final DriveSubsystem m_driveSubsystem;
-  private final VisionSubsystem m_visionSubsystem;
+  private final DriveSubsystem driveSubsystem;
+  private final VisionSubsystem visionSubsystem;
+
   public RotateToGoal(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
-    m_driveSubsystem = driveSubsystem;
-    m_visionSubsystem = visionSubsystem;
+    this.driveSubsystem = driveSubsystem;
+    this.visionSubsystem = visionSubsystem;
 
     addRequirements(driveSubsystem);
   }
-    private PIDController zPidController = new PIDController(0.03, 0.001, 0.001);
+
+  private PIDController zPidController = new PIDController(0.03, 0.001, 0.001);
 
   private double rotationSetpoint = 9999;
+
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    rotationSetpoint = m_visionSubsystem.getAngleToGoal() * -1;
+    rotationSetpoint = driveSubsystem.getAngleToGoal() * -1;
     zPidController = new PIDController(0.03, 0.001, 0.001);
     SmartDashboard.putNumber("Rotate Setpoint", rotationSetpoint);
     zPidController.setSetpoint(rotationSetpoint);
@@ -41,37 +44,36 @@ public class RotateToGoal extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double currentAngle = m_driveSubsystem.getCompassHeading();
+    double currentAngle = driveSubsystem.getCompassHeading();
 
-        
-    double rotatePower = zPidController.calculate(currentAngle);    
+    double rotatePower = zPidController.calculate(currentAngle);
 
     rotatePower = MathUtil.clamp(rotatePower, -0.3, 0.3);
-    SmartDashboard.putNumber("Rotate Power",rotatePower);
-    m_driveSubsystem.drive(
+    SmartDashboard.putNumber("Rotate Power", rotatePower);
+    driveSubsystem.drive(
         0.0,
         0.0,
         rotatePower,
         false,
-        false
-    );
+        false);
 
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {m_driveSubsystem.drive(
+  public void end(boolean interrupted) {
+    driveSubsystem.drive(
         0.0,
         0.0,
         0.0,
         false,
-        false
-    );}
+        false);
+  }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
 
-return false;
+    return false;
   }
 }

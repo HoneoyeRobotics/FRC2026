@@ -10,14 +10,14 @@ import frc.robot.subsystems.BallHandlingSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class RunShooterAtVelocity extends Command {
-  private final BallHandlingSubsystem m_BallHandlingSubsystem;
+  private final BallHandlingSubsystem ballHandlingSubsystem;
 
   /** Creates a new RunShootSequence. */
   public RunShooterAtVelocity(BallHandlingSubsystem ballHandlingSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(ballHandlingSubsystem);
-    m_BallHandlingSubsystem = ballHandlingSubsystem;
-    Preferences.setDouble("ShootRPM",Preferences.getDouble("ShootRPM", 2900));
+    this.ballHandlingSubsystem = ballHandlingSubsystem;
+    Preferences.setDouble("ShootRPM", Preferences.getDouble("ShootRPM", 2900));
   }
 
   private double TargetRPM = 0;
@@ -25,34 +25,34 @@ public class RunShooterAtVelocity extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    //TODO: get distance from the center
+    // TODO: get distance from the center
     double distance = 3;
-    //calculate target rpm by distance
-    //TargetRPM = 763 + (217*distance) + (-6.91*distance * distance); //based on 65deg
-    TargetRPM = 841 + (405*distance) + (-17.8*distance * distance); //based on 80 deg
+    // calculate target rpm by distance
+    // TargetRPM = 763 + (217*distance) + (-6.91*distance * distance); //based on
+    // 65deg
+    TargetRPM = 841 + (405 * distance) + (-17.8 * distance * distance); // based on 80 deg
 
-
-    double RPM = Preferences.getDouble("ShootRPM", 2900);
-    m_BallHandlingSubsystem.setShooterVelocity(RPM);
+    TargetRPM = Preferences.getDouble("ShootRPM", 2900);
+    ballHandlingSubsystem.setShooterVelocity(TargetRPM);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
     // run the shooter
-    //m_BallHandlingSubsystem.runShooter(0.55);
-    //m_BallHandlingSubsystem.setShooterVelocity(TargetRPM);
+    // BallHandlingSubsystem.runShooter(0.55);
+    // BallHandlingSubsystem.setShooterVelocity(TargetRPM);
 
     // // if the shooter is at the proper rpm, run everything.
-    // if (m_BallHandlingSubsystem.shooterAtVelocity()) {
-    //   m_BallHandlingSubsystem.moveBottomFeeder(1);
-    //   m_BallHandlingSubsystem.moveColumnFeeder(1);
-    //   m_BallHandlingSubsystem.moveColumnKicker(1); 
-    //   m_BallHandlingSubsystem.runPickup(0.33);
+    // if (BallHandlingSubsystem.shooterAtVelocity()) {
+    // BallHandlingSubsystem.moveBottomFeeder(1);
+    // BallHandlingSubsystem.moveColumnFeeder(1);
+    // BallHandlingSubsystem.moveColumnKicker(1);
+    // BallHandlingSubsystem.runPickup(0.33);
     // } else {
-    //   m_BallHandlingSubsystem.moveBottomFeeder(0);
-    //   m_BallHandlingSubsystem.moveColumnFeeder(0);
-    //   m_BallHandlingSubsystem.moveColumnKicker(0);
+    // BallHandlingSubsystem.moveBottomFeeder(0);
+    // BallHandlingSubsystem.moveColumnFeeder(0);
+    // BallHandlingSubsystem.moveColumnKicker(0);
     // }
 
   }
@@ -61,11 +61,11 @@ public class RunShooterAtVelocity extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    // m_BallHandlingSubsystem.moveBottomFeeder(0);
-    // m_BallHandlingSubsystem.moveColumnFeeder(0);
-    // m_BallHandlingSubsystem.moveColumnKicker(0);
-    m_BallHandlingSubsystem.setShooterVelocity(0);
-    // m_BallHandlingSubsystem.runPickup(0);
+    // BallHandlingSubsystem.moveBottomFeeder(0);
+    // BallHandlingSubsystem.moveColumnFeeder(0);
+    // BallHandlingSubsystem.moveColumnKicker(0);
+    ballHandlingSubsystem.setShooterVelocity(0);
+    // BallHandlingSubsystem.runPickup(0);
   }
 
   // Returns true when the command should end.
