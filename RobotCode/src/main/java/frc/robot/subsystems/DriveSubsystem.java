@@ -95,11 +95,11 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-   
+
     poseEstimator.update(getGyroYaw(), getModulePositions());
 
     var EstimatedPosition = poseEstimator.getEstimatedPosition();
-     odometry.update(
+    odometry.update(
         EstimatedPosition.getRotation(),
         new SwerveModulePosition[] {
             frontLeft.getPosition(),
@@ -108,7 +108,7 @@ public class DriveSubsystem extends SubsystemBase {
             rearRight.getPosition()
         });
 
-
+    SmartDashboard.putNumber("Est Distance", getDistanceFromGoal());
     SmartDashboard.putNumber("PoseEst X", EstimatedPosition.getX());
     SmartDashboard.putNumber("PoseEst Y", EstimatedPosition.getY());
     SmartDashboard.putNumber("PoseEst Rot", EstimatedPosition.getRotation().getDegrees());
@@ -116,6 +116,18 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Heading", getCompassHeading());
 
   }
+
+public double getDistanceFromGoal(){
+  
+    var EstimatedPosition = poseEstimator.getEstimatedPosition();
+    double currX = EstimatedPosition.getX();
+    double currY = EstimatedPosition.getY();
+
+    double goalX = 4.622;
+    double goalY = 4.025;
+
+  return Math.sqrt(Math.pow((currX - goalX), 2) + Math.pow((currY - goalY), 2));
+}
 
   /** Raw gyro yaw (this may not match the field heading!). */
   public Rotation2d getGyroYaw() {
@@ -258,6 +270,12 @@ public class DriveSubsystem extends SubsystemBase {
     return MathUtil.inputModulus(getHeading(), -180, 180);
   }
 
+  public double getEstimatedHeading() {
+    var EstimatedPose = poseEstimator.getEstimatedPosition();
+
+    return EstimatedPose.getRotation().getDegrees();
+  }
+
   public double getOffsetToGoal() {
     var EstimatedPose = poseEstimator.getEstimatedPosition();
 
@@ -273,8 +291,10 @@ public class DriveSubsystem extends SubsystemBase {
     double y = EstimatedPose.getY();
     double x = EstimatedPose.getX();
 
-    double angle = Math.atan((4.035 - y) / (4.626 - x)) * -1;
-    return Math.toDegrees(angle);
+    double angleRad = Math.atan((4.035 - y) / (4.626 - x)) * -1;
+    double angleDeg = Math.toDegrees(angleRad);
+
+    return angleDeg;
 
   }
 

@@ -20,6 +20,9 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.ControlType;
+
+import java.lang.annotation.Target;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -44,6 +47,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
   private boolean PreviouslyAtSetpoint = false;
 
   private SparkClosedLoopController pidController;
+  private double FeedForward = 0.59;
 
   /** Creates a new BallHandlingSubsystem. */
   public BallHandlingSubsystem() {
@@ -59,13 +63,15 @@ public class BallHandlingSubsystem extends SubsystemBase {
     ShooterLeftMotorConfig.idleMode(IdleMode.kCoast);
     ShooterLeftMotorConfig.inverted(true);
     ShooterLeftMotorConfig.encoder.uvwAverageDepth(1).uvwMeasurementPeriod(10);
-    ShooterLeftMotor.configure(ShooterLeftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    ShooterLeftMotor.configure(ShooterLeftMotorConfig, ResetMode.kResetSafeParameters,
+        PersistMode.kNoPersistParameters);
 
     SparkMaxConfig ShooterRightMotorConfig = new SparkMaxConfig();
     ShooterRightMotorConfig.idleMode(IdleMode.kCoast);
-    ShooterRightMotorConfig.inverted(false );
+    ShooterRightMotorConfig.inverted(false);
     ShooterRightMotorConfig.encoder.uvwAverageDepth(1).uvwMeasurementPeriod(10);
-    ShooterRightMotor.configure(ShooterRightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    ShooterRightMotor.configure(ShooterRightMotorConfig, ResetMode.kResetSafeParameters,
+        PersistMode.kNoPersistParameters);
 
     SparkMaxConfig KickerMotorConfig = new SparkMaxConfig();
     KickerMotorConfig.idleMode(IdleMode.kBrake);
@@ -80,7 +86,6 @@ public class BallHandlingSubsystem extends SubsystemBase {
 
     pidController = ShooterLeftMotor.getClosedLoopController();
     ShooterEncoder = ShooterLeftMotor.getEncoder();
-
 
     // ShooterLeftMotorConfig = new SparkMaxConfig();
     // ShooterLeftMotorConfig.encoder.velocityConversionFactor(1);
@@ -121,25 +126,27 @@ public class BallHandlingSubsystem extends SubsystemBase {
 
     if (ShooterPIDEnabled == false)
       return false;
+    return ShooterPIDController.atSetpoint();
 
-    double setpoint = ShooterPIDController.getSetpoint();
-    double velocity = ShooterEncoder.getVelocity();
-    double tolerance = Preferences.getDouble("ShooterTolerance", 50);
-    double upperTolerance = tolerance;
-    double lowerTolerance = tolerance;
-    if (PreviouslyAtSetpoint == false)
-      lowerTolerance = tolerance / 4;
-    else
-      upperTolerance = tolerance * 2;
+    // double setpoint = ShooterPIDController.getSetpoint();
+    // double velocity = ShooterEncoder.getVelocity();
+    // double tolerance = Preferences.getDouble("ShooterTolerance", 50);
+    // double upperTolerance = tolerance;
+    // double lowerTolerance = tolerance;
+    // if (PreviouslyAtSetpoint == false)
+    // lowerTolerance = tolerance / 4;
+    // else
+    // upperTolerance = tolerance * 2;
 
-    if (velocity >= (setpoint - lowerTolerance) && (velocity <= (setpoint + upperTolerance))) {
-      if (PreviouslyAtSetpoint == false) {
-        ShooterPIDController.setTolerance(tolerance);
-        PreviouslyAtSetpoint = true;
-      }
-      return true;
-    } else
-      return false;
+    // if (velocity >= (setpoint - lowerTolerance) && (velocity <= (setpoint +
+    // upperTolerance))) {
+    // if (PreviouslyAtSetpoint == false) {
+    // ShooterPIDController.setTolerance(tolerance);
+    // PreviouslyAtSetpoint = true;
+    // }
+    // return true;
+    // } else
+    // return false;
   }
 
   public Command setShooterVelocityCommand(double rpm) {
@@ -150,19 +157,38 @@ public class BallHandlingSubsystem extends SubsystemBase {
     pidController.setSetpoint(2900, ControlType.kVelocity);
   }
 
+  public void setShooterVelocityByDistance(double distance) {
+
+    double TargetRPM = 0;
+
+    // THIS IS FROM OUR GOOGLE DOCUMENT
+    TargetRPM = 132.23417 * distance * distance - 375.3763 * distance + 2820.15427;
+    SmartDashboard.putNumber("Google RPM", TargetRPM);
+    // this is from real math
+    double shooterAngle = 85;
+    double lossPct = 1/0.80;
+    TargetRPM = lossPct * 188 * (distance / Math.cos(shooterAngle)) * Math.sqrt(9.81 / (2 * distance * Math.tan(shooterAngle) - 1.067));
+    SmartDashboard.putNumber("Mathed RPM", TargetRPM);
+
+    FeedForward = 0.3288484 * Math.pow(1.000196, distance);
+
+    setShooterVelocity(TargetRPM);
+  }
+
   public void setShooterVelocity(double velocity) {
     ShooterPIDController.reset();
     ShooterPIDController.setSetpoint(velocity);
     if (velocity == 0) {
       ShooterPIDEnabled = false;
       ShooterLeftMotor.set(0);
+      ShooterRightMotor.set(0);
     } else {
 
       ShooterPIDController.reset();
       ShooterPIDController.setP(Preferences.getDouble("ShootP", 0.0002));
       ShooterPIDController.setI(Preferences.getDouble("ShootI", 0));
       ShooterPIDController.setD(Preferences.getDouble("ShootD", 0));
-      ShooterPIDController.setTolerance(0);
+      ShooterPIDController.setTolerance(Preferences.getDouble("ShooterTolerance", 50));
       PreviouslyAtSetpoint = false;
       ShooterPIDEnabled = true;
     }
@@ -197,16 +223,18 @@ public class BallHandlingSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Shooter RPM", ShooterEncoder.getVelocity());
     SmartDashboard.putNumber("Shooter Setpoint", ShooterPIDController.getSetpoint());
     SmartDashboard.putBoolean("Shooter At Setpoint", shooterAtVelocity());
-
+    SmartDashboard.putNumber("Shooter Tolerance", ShooterPIDController.getErrorTolerance());
     SmartDashboard.putBoolean("PID Enabled", ShooterPIDEnabled);
     if (ShooterPIDEnabled == true) {
 
       double ff = Preferences.getDouble("ShooterFF", 0.59);
-      double speed = ShooterPIDController.calculate(ShooterEncoder.getVelocity()) + ff;
+
+      double speed = ShooterPIDController.calculate(ShooterEncoder.getVelocity()) + FeedForward;
 
       // if(speed < 0.1)
       // speed = 0.1;
       ShooterLeftMotor.set(speed);
+      ShooterRightMotor.set(speed);
       SmartDashboard.putNumber("Shooter Speed", speed);
     } else {
       SmartDashboard.putNumber("Shooter Speed", 0.0);

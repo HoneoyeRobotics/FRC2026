@@ -38,13 +38,13 @@ public class RotateToGoal extends Command {
     zPidController.setIntegratorRange(-0.5, 0.5);
     zPidController.enableContinuousInput(-180, 180);
     zPidController.setTolerance(0.1);
-
+    SmartDashboard.putNumber("Rotate to Goal:", rotationSetpoint);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double currentAngle = driveSubsystem.getCompassHeading();
+    double currentAngle = driveSubsystem.getEstimatedHeading();
 
     double rotatePower = zPidController.calculate(currentAngle);
 
@@ -74,6 +74,6 @@ public class RotateToGoal extends Command {
   @Override
   public boolean isFinished() {
 
-    return false;
+    return zPidController.atSetpoint();
   }
 }

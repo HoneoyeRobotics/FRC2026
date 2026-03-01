@@ -13,6 +13,8 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
@@ -26,6 +28,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import java.util.List;
+
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -41,8 +46,9 @@ public class RobotContainer {
   // The driver's controller
   CommandXboxController driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
   CommandJoystick ButtonBoard = new CommandJoystick(1);
-  CommandXboxController driverController2 = new CommandXboxController(2);
+  // CommandXboxController driverController2 = new CommandXboxController(2);
   private final Climber climber = new Climber();
+  private SendableChooser<Command> auto = new SendableChooser<>();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -53,6 +59,13 @@ public class RobotContainer {
 
     // Configure default commands
     driveSubsystem.setDefaultCommand(new TeleopDrive(driveSubsystem, driverController));
+
+    NamedCommands.registerCommand("RunShootSequence", new RunShootSequence(BallHandlingSubsystem, driveSubsystem));
+    NamedCommands.registerCommand("RotateToGoal", new RotateToGoal(driveSubsystem, visionSubsystem));
+
+
+    SmartDashboard.putData("Auto Mode", auto);
+    auto.addOption("Auto 1", new PathPlannerAuto("Auto 1"));
   }
 
   /**
@@ -97,12 +110,19 @@ public class RobotContainer {
     // shoooooooot at a velocity
     ButtonBoard.button(7).whileTrue(new RunShooterAtVelocity(BallHandlingSubsystem));
 
-    ButtonBoard.button(1).whileTrue(new RunShootSequence(BallHandlingSubsystem));
+    ButtonBoard.button(1).whileTrue(new RunShootSequence(BallHandlingSubsystem, driveSubsystem));
     ButtonBoard.button(2).onTrue(new TogglePickupSolenoid(BallHandlingSubsystem));
-    climber.setDefaultCommand(new MoveClimber(climber, () -> driverController2.getRightY()));
+    // climber.setDefaultCommand(new MoveClimber(climber, () ->
+    // driverController2.getRightY()));
 
-    driverController2.y().onTrue(Commands.runOnce(() -> BallHandlingSubsystem.setShooterVelocityCommand(2700)));
-    driverController2.x().onTrue(Commands.runOnce(() -> BallHandlingSubsystem.setShooterVelocityCommand(0)));
+    // move down
+    ButtonBoard.axisGreaterThan(1, 0.5).whileTrue(new MoveClimber(climber, () -> -1));
+    // move up
+    ButtonBoard.axisLessThan(1, -0.5).whileTrue(new MoveClimber(climber, () -> 1));
+    // driverController2.y().onTrue(Commands.runOnce(() ->
+    // BallHandlingSubsystem.setShooterVelocityCommand(2700)));
+    // driverController2.x().onTrue(Commands.runOnce(() ->
+    // BallHandlingSubsystem.setShooterVelocityCommand(0)));
 
   }
 
