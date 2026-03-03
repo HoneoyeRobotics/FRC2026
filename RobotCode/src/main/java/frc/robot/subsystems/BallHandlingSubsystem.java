@@ -170,7 +170,13 @@ public class BallHandlingSubsystem extends SubsystemBase {
     TargetRPM = lossPct * 188 * (distance / Math.cos(shooterAngle)) * Math.sqrt(9.81 / (2 * distance * Math.tan(shooterAngle) - 1.067));
     SmartDashboard.putNumber("Mathed RPM", TargetRPM);
 
+    //our mathed ff
     FeedForward = 0.3288484 * Math.pow(1.000196, distance);
+
+    //real FF
+    FeedForward = TargetRPM / 5676;
+
+    SmartDashboard.putNumber("Feed Forward", FeedForward);
 
     setShooterVelocity(TargetRPM);
   }
