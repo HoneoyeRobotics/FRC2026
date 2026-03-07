@@ -14,7 +14,8 @@ import frc.robot.subsystems.DriveSubsystem;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class RunShootSequence extends Command {
   private final BallHandlingSubsystem ballHandlingSubsystem;
-private final DriveSubsystem driveSubsystem;
+  private final DriveSubsystem driveSubsystem;
+
   /** Creates a new RunShootSequence. */
   public RunShootSequence(BallHandlingSubsystem ballHandlingSubsystem, DriveSubsystem driveSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
@@ -34,16 +35,20 @@ private final DriveSubsystem driveSubsystem;
     // // calculate target rpm by distance
     // // TargetRPM = 763 + (217*distance) + (-6.91*distance * distance); //based on
     // // 65deg
-    // TargetRPM = 841 + (405 * distance) + (-17.8 * distance * distance); // based on 80 deg
+    // TargetRPM = 841 + (405 * distance) + (-17.8 * distance * distance); // based
+    // on 80 deg
 
     // currentTimer.restart();
     // TargetRPM = Preferences.getDouble("ShootRPM", 2900);
-
-
-    //based on our data from desmos    
+    ShooterSpunUp = false;
+    ShooterReady = false;
+    // based on our data from desmos
     ballHandlingSubsystem.setShooterVelocityByDistance(distance);
 
   }
+
+  private boolean ShooterReady = false;
+  private boolean ShooterSpunUp = false;
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -52,18 +57,25 @@ private final DriveSubsystem driveSubsystem;
     // BallHandlingSubsystem.runShooter(0.55);
 
     ballHandlingSubsystem.runPickup(0.66);
-    if (ballHandlingSubsystem.shooterAtVelocity()) {
+
+    if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == false) {
+      if (currentTimer.isRunning() == false)
+        currentTimer.restart();
+      if (currentTimer.hasElapsed(3))
+        ShooterSpunUp = true;
+    } else if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == true) {
+
       ballHandlingSubsystem.moveBottomFeeder(1);
-      ballHandlingSubsystem.moveColumnFeeder(.5);
-      ballHandlingSubsystem.moveColumnKicker(.5);
+      ballHandlingSubsystem.moveColumnFeeder(.33);
+      ballHandlingSubsystem.moveColumnKicker(.33);
       SmartDashboard.putString("Loop Part", "shooting");
     }
     // if the shooter is no longer at velocity, and has been shooting for 1 second,
     // then stop.
-    else {
-      ballHandlingSubsystem.moveBottomFeeder(1);
-      ballHandlingSubsystem.moveColumnFeeder(0.3);
-      ballHandlingSubsystem.moveColumnKicker(0);
+    else if (ShooterReady == true) {
+      // ballHandlingSubsystem.moveBottomFeeder(1);
+      // ballHandlingSubsystem.moveColumnFeeder(0.3);
+      // ballHandlingSubsystem.moveColumnKicker(0);
       SmartDashboard.putString("Loop Part", "resetting....");
     }
 

@@ -13,6 +13,7 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutoConstants;
@@ -49,11 +50,13 @@ public class RobotContainer {
   // CommandXboxController driverController2 = new CommandXboxController(2);
   private final Climber climber = new Climber();
   private SendableChooser<Command> auto = new SendableChooser<>();
+  private final Field2d field;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+    field = new Field2d();
     // Configure the button bindings
     configureButtonBindings();
 
@@ -61,11 +64,14 @@ public class RobotContainer {
     driveSubsystem.setDefaultCommand(new TeleopDrive(driveSubsystem, driverController));
 
     NamedCommands.registerCommand("RunShootSequence", new RunShootSequence(BallHandlingSubsystem, driveSubsystem));
-    NamedCommands.registerCommand("RotateToGoal", new RotateToGoal(driveSubsystem, visionSubsystem));
+    NamedCommands.registerCommand("TogglePickupSolenoid", new TogglePickupSolenoid(BallHandlingSubsystem));
 
+    NamedCommands.registerCommand("RotateToGoal", new RotateToGoal(driveSubsystem, visionSubsystem));
 
     SmartDashboard.putData("Auto Mode", auto);
     auto.addOption("Auto 1", new PathPlannerAuto("Auto 1"));
+    auto.addOption("Move Back", new PathPlannerAuto("Move back"));
+
   }
 
   /**
@@ -132,43 +138,8 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // Create config for trajectory
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecond,
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
+     return auto.getSelected();
+    //return new PathPlannerAuto("Move back");
 
-    // An example trajectory to follow. All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        config);
-
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
-
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
-        driveSubsystem::getPose, // Functional interface to feed supplier
-        DriveConstants.kDriveKinematics,
-
-        // Position controllers
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        driveSubsystem::setModuleStates,
-        driveSubsystem);
-
-    // Reset odometry to the starting pose of the trajectory.
-    driveSubsystem.resetOdometry(exampleTrajectory.getInitialPose());
-
-    // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> driveSubsystem.drive(0, 0, 0, false, false));
   }
 }

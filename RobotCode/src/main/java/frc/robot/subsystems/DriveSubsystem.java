@@ -24,9 +24,14 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -76,6 +81,14 @@ public class DriveSubsystem extends SubsystemBase {
     };
   }
 
+
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+
+    return DriveConstants.kDriveKinematics.toChassisSpeeds(frontLeft.getState(),
+        frontRight.getState(),
+        rearLeft.getState(),
+        rearRight.getState());
+  }
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
     // Usage reporting for MAXSwerve template
@@ -90,7 +103,55 @@ public class DriveSubsystem extends SubsystemBase {
         new Pose2d(),
         stateStdDevs,
         visionStdDevs);
+
+    RobotConfig config = null;
+    try {
+      config = RobotConfig.fromGUISettings();
+    } catch (Exception e) {
+      // Handle exception as needed
+      e.printStackTrace();
+    }
+
+    AutoBuilder.configure(
+        this::getEstimatedPose, // Robot pose supplier
+        this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+        this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+        (speeds, feedforwards) -> driveSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE
+                                                       // ChassisSpeeds. Also optionally outputs individual
+                                                       // module feedforwards
+        new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic
+                                        // drive trains
+            new PIDConstants(2.5, 0.0, 0.0), // Translation PID constants
+            new PIDConstants(1 , 0.0, 0.0) // Rotation PID constants
+        ),
+        config, // The robot configuration
+        () -> {
+          // Boolean supplier that controls when the path will be mirrored for the red
+          // alliance
+          // This will flip the path being followed to the red side of the field.
+          // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+          var alliance = DriverStation.getAlliance();
+          if (alliance.isPresent()) {
+            return alliance.get() == DriverStation.Alliance.Red;
+          }
+          return false;
+        },
+        this // Reference to this subsystem to set requirements
+    );
+
   }
+  
+  public void driveSpeeds(ChassisSpeeds speeds) {
+    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates,
+        DriveConstants.kMaxSpeedMetersPerSecond);
+    frontLeft.setDesiredState(swerveModuleStates[0]);
+    frontRight.setDesiredState(swerveModuleStates[1]);
+    rearLeft.setDesiredState(swerveModuleStates[2]);
+    rearRight.setDesiredState(swerveModuleStates[3]);
+  }
+
 
   @Override
   public void periodic() {
@@ -101,6 +162,8 @@ public class DriveSubsystem extends SubsystemBase {
     var EstimatedPosition = poseEstimator.getEstimatedPosition();
     odometry.update(
         EstimatedPosition.getRotation(),
+        //Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()), // IMUAxis.kZ)),
+
         new SwerveModulePosition[] {
             frontLeft.getPosition(),
             frontRight.getPosition(),
@@ -117,8 +180,8 @@ public class DriveSubsystem extends SubsystemBase {
 
   }
 
-public double getDistanceFromGoal(){
-  
+  public double getDistanceFromGoal() {
+
     var EstimatedPosition = poseEstimator.getEstimatedPosition();
     double currX = EstimatedPosition.getX();
     double currY = EstimatedPosition.getY();
@@ -126,8 +189,8 @@ public double getDistanceFromGoal(){
     double goalX = 4.622;
     double goalY = 4.025;
 
-  return Math.sqrt(Math.pow((currX - goalX), 2) + Math.pow((currY - goalY), 2));
-}
+    return Math.sqrt(Math.pow((currX - goalX), 2) + Math.pow((currY - goalY), 2));
+  }
 
   /** Raw gyro yaw (this may not match the field heading!). */
   public Rotation2d getGyroYaw() {
@@ -143,6 +206,12 @@ public double getDistanceFromGoal(){
     return odometry.getPoseMeters();
   }
 
+  public Pose2d getEstimatedPose(){
+    
+    var EstimatedPose = poseEstimator.getEstimatedPosition();
+
+    return EstimatedPose;
+  }
   /**
    * Resets the odometry to the specified pose.
    *
@@ -275,6 +344,7 @@ public double getDistanceFromGoal(){
 
     return EstimatedPose.getRotation().getDegrees();
   }
+
 
   public double getOffsetToGoal() {
     var EstimatedPose = poseEstimator.getEstimatedPosition();

@@ -59,6 +59,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
     ColumnKickerMotor = new SparkMax(MotorConstants.ColumnKickerCanID, MotorType.kBrushless);
     ShooterLeftMotor = new SparkMax(MotorConstants.ShooterLeftCanID, MotorType.kBrushless);
     ShooterRightMotor = new SparkMax(MotorConstants.ShooterRightCanID, MotorType.kBrushless);
+    
     SparkMaxConfig ShooterLeftMotorConfig = new SparkMaxConfig();
     ShooterLeftMotorConfig.idleMode(IdleMode.kCoast);
     ShooterLeftMotorConfig.inverted(true);
@@ -67,7 +68,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
         PersistMode.kNoPersistParameters);
 
     SparkMaxConfig ShooterRightMotorConfig = new SparkMaxConfig();
-    ShooterRightMotorConfig.idleMode(IdleMode.kCoast);
+    ShooterRightMotorConfig.idleMode(IdleMode.kBrake);
     ShooterRightMotorConfig.inverted(false);
     ShooterRightMotorConfig.encoder.uvwAverageDepth(1).uvwMeasurementPeriod(10);
     ShooterRightMotor.configure(ShooterRightMotorConfig, ResetMode.kResetSafeParameters,
@@ -78,8 +79,13 @@ public class BallHandlingSubsystem extends SubsystemBase {
     KickerMotorConfig.inverted(true);
     ColumnKickerMotor.configure(KickerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
+    SparkMaxConfig ColumnFeederMotorConfig = new SparkMaxConfig();
+    ColumnFeederMotorConfig.idleMode(IdleMode.kBrake);
+    ColumnFeederMotorConfig.inverted(false);
+    ColumnFeederMotor.configure(ColumnFeederMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
     SparkMaxConfig BottomFeederMotorConfig = new SparkMaxConfig();
-    BottomFeederMotorConfig.idleMode(IdleMode.kBrake);
+    BottomFeederMotorConfig.idleMode(IdleMode.kCoast);
     BottomFeederMotorConfig.inverted(true);
     BottomFeederMotor.configure(BottomFeederMotorConfig, ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
@@ -106,7 +112,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
         Constants.PneumaticsConstants.PickupPneumaticCylinderForwardChannel,
         Constants.PneumaticsConstants.PickupPneumaticCylinderReverseChannel);
     // PickupSolenoid.set(DoubleSolenoid.Value.kReverse);
-    PickupSolenoid.set(DoubleSolenoid.Value.kForward);
+    PickupSolenoid.set(DoubleSolenoid.Value.kReverse);
 
     Preferences.setDouble("ShooterTolerance", Preferences.getDouble("ShooterTolerance", 50));
     ShooterPIDController.setTolerance(Preferences.getDouble("ShooterTolerance", 50));
@@ -163,19 +169,20 @@ public class BallHandlingSubsystem extends SubsystemBase {
 
     // THIS IS FROM OUR GOOGLE DOCUMENT
     TargetRPM = 132.23417 * distance * distance - 375.3763 * distance + 2820.15427;
+    TargetRPM = TargetRPM *  1.015;
     SmartDashboard.putNumber("Google RPM", TargetRPM);
     // this is from real math
     double shooterAngle = 85;
-    double lossPct = 1/0.80;
-    TargetRPM = lossPct * 188 * (distance / Math.cos(shooterAngle)) * Math.sqrt(9.81 / (2 * distance * Math.tan(shooterAngle) - 1.067));
+    double lossPct = 1 / 0.80;
+    // TargetRPM = lossPct * 188 * (distance / Math.cos(shooterAngle))
+    //     * Math.sqrt(9.81 / (2 * distance * Math.tan(shooterAngle) - 1.067));
     SmartDashboard.putNumber("Mathed RPM", TargetRPM);
 
-    //our mathed ff
-    FeedForward = 0.3288484 * Math.pow(1.000196, distance);
+    // our mathed ff
+    //FeedForward = 0.3288484 * Math.pow(1.000196, distance);
 
-    //real FF
-    FeedForward = TargetRPM / 5676;
-
+    // real FF
+    FeedForward = TargetRPM / 5676 * 1.1;
     SmartDashboard.putNumber("Feed Forward", FeedForward);
 
     setShooterVelocity(TargetRPM);
