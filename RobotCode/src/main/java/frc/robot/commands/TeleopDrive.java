@@ -66,9 +66,9 @@ public class TeleopDrive extends Command {
 
     // if you are pushing on the left stick, modify based ont he limelight.
     if (driverController.leftBumper().getAsBoolean() == true || coDriverJoystick.button(3).getAsBoolean() == true) {
-      fieldRelative = false;
-      xSpeed = RightxSpeed;
-      ySpeed = RightySpeed;
+      // // fieldRelative = false;
+      // xSpeed = RightxSpeed;
+      // ySpeed = RightySpeed;
 
       double targetYaw = 0.0; // this is the yaw we want to be at
 
