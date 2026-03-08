@@ -13,6 +13,7 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -24,10 +25,13 @@ import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 import java.util.List;
 
 import com.pathplanner.lib.auto.NamedCommands;
@@ -61,7 +65,7 @@ public class RobotContainer {
     configureButtonBindings();
 
     // Configure default commands
-    driveSubsystem.setDefaultCommand(new TeleopDrive(driveSubsystem, driverController));
+    driveSubsystem.setDefaultCommand(new TeleopDrive(driveSubsystem, driverController, ButtonBoard));
 
     NamedCommands.registerCommand("RunShootSequence", new RunShootSequence(BallHandlingSubsystem, driveSubsystem));
     NamedCommands.registerCommand("TogglePickupSolenoid", new TogglePickupSolenoid(BallHandlingSubsystem));
@@ -86,38 +90,66 @@ public class RobotContainer {
   private void configureButtonBindings() {
 
     // right bumper is the go fast button
-    driverController.leftBumper().whileTrue(new RotateToGoal(driveSubsystem, visionSubsystem));
+    // left bumper included in the robot
+    // driverController.leftBumper().whileTrue(new RotateToGoal(driveSubsystem,
+    // visionSubsystem));
     // picks up balls
-    driverController.a().whileTrue(new PickupBalls(BallHandlingSubsystem, 0.66));
+    // driverController.a().whileTrue(new PickupBalls(BallHandlingSubsystem, 0.66));
     // spits balls out pickup
     driverController.b().whileTrue(new PickupBalls(BallHandlingSubsystem, -0.66));
 
+    driverController.y().whileTrue(new DumpBallsOverField(BallHandlingSubsystem, driveSubsystem));
+
     // driverController.x().whileTrue(new RunCommand(() ->
     // driveSubsystem.setX(),driveSubsystem));
-    driverController.back().onTrue(new InstantCommand(() -> driveSubsystem.zeroHeading(), driveSubsystem));
+    // driverController.back().onTrue(new InstantCommand(() ->
+    // driveSubsystem.zeroHeading(), driveSubsystem));
     // get balls out of column
 
-    ButtonBoard.button(6).whileTrue(new RunBottomFeeder(BallHandlingSubsystem, -0.5));
-    // move the balls from the bottom into the column
-    ButtonBoard.button(10).whileTrue(new RunBottomFeeder(BallHandlingSubsystem, 1));
+    // run the intake from either controller
+    Trigger shooterTrigger = new Trigger(
+        () -> ButtonBoard.button(10).getAsBoolean() || driverController.a().getAsBoolean())
+        .whileTrue(new PickupBalls(BallHandlingSubsystem, 0.66));
 
-    // run the column to bring the balls back into the hopper
-    ButtonBoard.button(5).whileTrue(new RunColumnFeeder(BallHandlingSubsystem, -0.5));
+    // spit them all
+    ButtonBoard.button(6).whileTrue(new ParallelCommandGroup(
+        new ManualShootControl(BallHandlingSubsystem, -0.5),
+        new RunColumnKicker(BallHandlingSubsystem, -0.5),
+        new RunColumnFeeder(BallHandlingSubsystem, -0.5),
+        new RunBottomFeeder(BallHandlingSubsystem, -0.5)));
+    // ButtonBoard.button(10).whileTrue(new PickupBalls(BallHandlingSubsystem,
+    // 0.66));
+
+    // ButtonBoard.button(6).whileTrue(new RunBottomFeeder(BallHandlingSubsystem,
+    // -0.5));
+    // // move the balls from the bottom into the column
+    ButtonBoard.button(5).whileTrue(new RunBottomFeeder(BallHandlingSubsystem,
+    1));
+
+    // // run the column to bring the balls back into the hopper
+    // ButtonBoard.button(5).whileTrue(new RunColumnFeeder(BallHandlingSubsystem,
+    // -0.5));
     // run the column so the balls come up to the kicker
-    ButtonBoard.button(9).whileTrue(new RunColumnFeeder(BallHandlingSubsystem, 0.5));
+    ButtonBoard.button(4).whileTrue(new RunColumnFeeder(BallHandlingSubsystem,
+    0.5));
 
-    // run the kicker to bring the balls back into the column
-    ButtonBoard.button(4).whileTrue(new RunColumnKicker(BallHandlingSubsystem, -0.5));
+    // // run the kicker to bring the balls back into the column
+    // ButtonBoard.button(4).whileTrue(new RunColumnKicker(BallHandlingSubsystem,
+    // -0.5));
     // bring the balls from the column into the shooter
-    ButtonBoard.button(8).whileTrue(new RunColumnKicker(BallHandlingSubsystem, 0.5));
+    ButtonBoard.button(8).whileTrue(new RunColumnKicker(BallHandlingSubsystem,
+    0.5));
 
-    // pull balls back in from shooter into kicker
-    ButtonBoard.button(3).whileTrue(new ManualShootControl(BallHandlingSubsystem, -0.5));
-    // shoooooooot at a velocity
-    ButtonBoard.button(7).whileTrue(new RunShooterAtVelocity(BallHandlingSubsystem));
+    // // pull balls back in from shooter into kicker
+    // ButtonBoard.button(3).whileTrue(new ManualShootControl(BallHandlingSubsystem,
+    // -0.5));
+    // // shoooooooot at a velocity
+    // ButtonBoard.button(7).whileTrue(new
+    // RunShooterAtVelocity(BallHandlingSubsystem));
 
-    ButtonBoard.button(1).whileTrue(new RunShootSequence(BallHandlingSubsystem, driveSubsystem));
-    ButtonBoard.button(2).onTrue(new TogglePickupSolenoid(BallHandlingSubsystem));
+    ButtonBoard.button(1).whileTrue(
+        new TeleopShootSequence(BallHandlingSubsystem, driveSubsystem, () -> ButtonBoard.button(2).getAsBoolean()));
+    ButtonBoard.button(7).onTrue(new TogglePickupSolenoid(BallHandlingSubsystem));
     // climber.setDefaultCommand(new MoveClimber(climber, () ->
     // driverController2.getRightY()));
 
@@ -138,8 +170,8 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-     return auto.getSelected();
-    //return new PathPlannerAuto("Move back");
+    return auto.getSelected();
+    // return new PathPlannerAuto("Move back");
 
   }
 }

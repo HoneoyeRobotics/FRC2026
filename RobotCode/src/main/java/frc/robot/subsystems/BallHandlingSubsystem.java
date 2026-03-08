@@ -170,6 +170,9 @@ public class BallHandlingSubsystem extends SubsystemBase {
     // THIS IS FROM OUR GOOGLE DOCUMENT
     TargetRPM = 132.23417 * distance * distance - 375.3763 * distance + 2820.15427;
     TargetRPM = TargetRPM *  1.015;
+
+    if(distance < 3)
+      TargetRPM = TargetRPM * 1.065;
     SmartDashboard.putNumber("Google RPM", TargetRPM);
     // this is from real math
     double shooterAngle = 85;
@@ -182,7 +185,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
     //FeedForward = 0.3288484 * Math.pow(1.000196, distance);
 
     // real FF
-    FeedForward = TargetRPM / 5676 * 1.1;
+    FeedForward = TargetRPM / 5676;// * 1.1;
     SmartDashboard.putNumber("Feed Forward", FeedForward);
 
     setShooterVelocity(TargetRPM);

@@ -22,7 +22,7 @@ public class PickupBalls extends Command {
    */
   public PickupBalls(BallHandlingSubsystem ballHandlingSubsystem, double speed) {
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(ballHandlingSubsystem);
+    // addRequirements(ballHandlingSubsystem);
     this.ballHandlingSubsystem = ballHandlingSubsystem;
     this.speed = speed;
   }

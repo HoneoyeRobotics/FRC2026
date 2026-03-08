@@ -4,6 +4,8 @@
 
 package frc.robot.commands;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -12,16 +14,19 @@ import frc.robot.subsystems.BallHandlingSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class RunShootSequence extends Command {
+public class TeleopShootSequence extends Command {
   private final BallHandlingSubsystem ballHandlingSubsystem;
   private final DriveSubsystem driveSubsystem;
+  private final BooleanSupplier shootButtonSupplier;
 
   /** Creates a new RunShootSequence. */
-  public RunShootSequence(BallHandlingSubsystem ballHandlingSubsystem, DriveSubsystem driveSubsystem) {
+  public TeleopShootSequence(BallHandlingSubsystem ballHandlingSubsystem, DriveSubsystem driveSubsystem,
+      BooleanSupplier shootButtonSupplier) {
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(ballHandlingSubsystem);
     this.ballHandlingSubsystem = ballHandlingSubsystem;
     this.driveSubsystem = driveSubsystem;
+    this.shootButtonSupplier = shootButtonSupplier;
     Preferences.setDouble("ShootRPM", Preferences.getDouble("ShootRPM", 2900));
   }
 
@@ -42,11 +47,13 @@ public class RunShootSequence extends Command {
     // TargetRPM = Preferences.getDouble("ShootRPM", 2900);
     ShooterSpunUp = false;
     ShooterReady = false;
+    HasPushedShoot = false;
     // based on our data from desmos
     ballHandlingSubsystem.setShooterVelocityByDistance(distance);
-
+    currentTimer.restart();
   }
 
+  private boolean HasPushedShoot = false;
   private boolean ShooterReady = false;
   private boolean ShooterSpunUp = false;
 
@@ -58,27 +65,38 @@ public class RunShootSequence extends Command {
 
     // ballHandlingSubsystem.runPickup(0.66);
 
-    if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == false) {
-      if (currentTimer.isRunning() == false)
-        currentTimer.restart();
-      if (currentTimer.hasElapsed(1.5))
-        ShooterSpunUp = true;
-    } else if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == true) {
-
-      ballHandlingSubsystem.moveBottomFeeder(1);
-      ballHandlingSubsystem.moveColumnFeeder(.33);
-      ballHandlingSubsystem.moveColumnKicker(.33);
-      SmartDashboard.putString("Loop Part", "shooting");
+    SmartDashboard.putBoolean("HasPushedShoot", HasPushedShoot);
+    SmartDashboard.putBoolean("ShooterSpunUp", ShooterSpunUp);
+    if (HasPushedShoot == false && shootButtonSupplier.getAsBoolean()) {
+      HasPushedShoot = true;
     }
-    // if the shooter is no longer at velocity, and has been shooting for 1 second,
-    // then stop.
-    else if (ShooterReady == true) {
-      // ballHandlingSubsystem.moveBottomFeeder(1);
-      // ballHandlingSubsystem.moveColumnFeeder(0.3);
-      // ballHandlingSubsystem.moveColumnKicker(0);
-      SmartDashboard.putString("Loop Part", "resetting....");
+    if ( ShooterSpunUp == false && currentTimer.hasElapsed(2))
+    {
+      currentTimer.stop();
+      ShooterSpunUp = true;
     }
 
+    if (HasPushedShoot == false) {
+      ballHandlingSubsystem.setShooterVelocityByDistance(driveSubsystem.getDistanceFromGoal());
+      // if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == false)
+      // currentTimer.restart();
+
+    } else {
+
+      // if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == false) {
+      // if (currentTimer.isRunning() == false)
+      // currentTimer.restart();
+      // }
+
+      // if (currentTimer.hasElapsed(1.5))
+      // ShooterSpunUp = true;
+
+      if (ShooterSpunUp == true) {
+        ballHandlingSubsystem.moveBottomFeeder(1);
+        ballHandlingSubsystem.moveColumnFeeder(.33);
+        ballHandlingSubsystem.moveColumnKicker(.33);
+      }
+    }
   }
 
   // Called once the command ends or is interrupted.

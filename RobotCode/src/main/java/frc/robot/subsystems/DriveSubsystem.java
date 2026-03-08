@@ -25,8 +25,10 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.lib.Perspective;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
@@ -81,7 +83,6 @@ public class DriveSubsystem extends SubsystemBase {
     };
   }
 
-
   public ChassisSpeeds getRobotRelativeSpeeds() {
 
     return DriveConstants.kDriveKinematics.toChassisSpeeds(frontLeft.getState(),
@@ -89,6 +90,7 @@ public class DriveSubsystem extends SubsystemBase {
         rearLeft.getState(),
         rearRight.getState());
   }
+
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
     // Usage reporting for MAXSwerve template
@@ -122,7 +124,7 @@ public class DriveSubsystem extends SubsystemBase {
         new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic
                                         // drive trains
             new PIDConstants(2.5, 0.0, 0.0), // Translation PID constants
-            new PIDConstants(1 , 0.0, 0.0) // Rotation PID constants
+            new PIDConstants(1, 0.0, 0.0) // Rotation PID constants
         ),
         config, // The robot configuration
         () -> {
@@ -141,7 +143,7 @@ public class DriveSubsystem extends SubsystemBase {
     );
 
   }
-  
+
   public void driveSpeeds(ChassisSpeeds speeds) {
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates,
@@ -152,7 +154,6 @@ public class DriveSubsystem extends SubsystemBase {
     rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
-
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
@@ -162,7 +163,7 @@ public class DriveSubsystem extends SubsystemBase {
     var EstimatedPosition = poseEstimator.getEstimatedPosition();
     odometry.update(
         EstimatedPosition.getRotation(),
-        //Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()), // IMUAxis.kZ)),
+        // Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()), // IMUAxis.kZ)),
 
         new SwerveModulePosition[] {
             frontLeft.getPosition(),
@@ -189,6 +190,12 @@ public class DriveSubsystem extends SubsystemBase {
     double goalX = 4.622;
     double goalY = 4.025;
 
+    var alliance = DriverStation.getAlliance();
+    if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+      // 16.54m total field length, so go to the other and and go back.
+      goalX = 16.54 - goalX;
+    }
+
     return Math.sqrt(Math.pow((currX - goalX), 2) + Math.pow((currY - goalY), 2));
   }
 
@@ -206,12 +213,13 @@ public class DriveSubsystem extends SubsystemBase {
     return odometry.getPoseMeters();
   }
 
-  public Pose2d getEstimatedPose(){
-    
+  public Pose2d getEstimatedPose() {
+
     var EstimatedPose = poseEstimator.getEstimatedPosition();
 
     return EstimatedPose;
   }
+
   /**
    * Resets the odometry to the specified pose.
    *
@@ -272,10 +280,17 @@ public class DriveSubsystem extends SubsystemBase {
     double ySpeedDelivered = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond;
     double rotDelivered = rot * DriveConstants.kMaxAngularSpeed;
 
+    Rotation2d currentRotation = poseEstimator.getEstimatedPosition().getRotation();
+
+    if(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+      currentRotation = currentRotation.rotateBy(Rotation2d.kPi);
+    }
+
+
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
-                poseEstimator.getEstimatedPosition().getRotation())
+             ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, currentRotation)
+            //? Perspective.OPERATOR.toPerspectiveSpeeds( new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered), currentRotation)
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -344,7 +359,6 @@ public class DriveSubsystem extends SubsystemBase {
 
     return EstimatedPose.getRotation().getDegrees();
   }
-
 
   public double getOffsetToGoal() {
     var EstimatedPose = poseEstimator.getEstimatedPosition();

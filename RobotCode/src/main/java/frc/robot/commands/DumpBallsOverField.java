@@ -12,12 +12,12 @@ import frc.robot.subsystems.BallHandlingSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class RunShootSequence extends Command {
+public class DumpBallsOverField extends Command {
   private final BallHandlingSubsystem ballHandlingSubsystem;
   private final DriveSubsystem driveSubsystem;
 
   /** Creates a new RunShootSequence. */
-  public RunShootSequence(BallHandlingSubsystem ballHandlingSubsystem, DriveSubsystem driveSubsystem) {
+  public DumpBallsOverField(BallHandlingSubsystem ballHandlingSubsystem, DriveSubsystem driveSubsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(ballHandlingSubsystem);
     this.ballHandlingSubsystem = ballHandlingSubsystem;
@@ -31,7 +31,7 @@ public class RunShootSequence extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    double distance = driveSubsystem.getDistanceFromGoal();
+    double distance = 4;
     // // calculate target rpm by distance
     // // TargetRPM = 763 + (217*distance) + (-6.91*distance * distance); //based on
     // // 65deg
@@ -59,24 +59,12 @@ public class RunShootSequence extends Command {
     // ballHandlingSubsystem.runPickup(0.66);
 
     if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == false) {
-      if (currentTimer.isRunning() == false)
-        currentTimer.restart();
-      if (currentTimer.hasElapsed(1.5))
-        ShooterSpunUp = true;
-    } else if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == true) {
+      ShooterSpunUp = true;
+    } else if (ShooterSpunUp == true) {
 
       ballHandlingSubsystem.moveBottomFeeder(1);
       ballHandlingSubsystem.moveColumnFeeder(.33);
       ballHandlingSubsystem.moveColumnKicker(.33);
-      SmartDashboard.putString("Loop Part", "shooting");
-    }
-    // if the shooter is no longer at velocity, and has been shooting for 1 second,
-    // then stop.
-    else if (ShooterReady == true) {
-      // ballHandlingSubsystem.moveBottomFeeder(1);
-      // ballHandlingSubsystem.moveColumnFeeder(0.3);
-      // ballHandlingSubsystem.moveColumnKicker(0);
-      SmartDashboard.putString("Loop Part", "resetting....");
     }
 
   }
