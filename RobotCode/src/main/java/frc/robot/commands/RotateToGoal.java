@@ -6,6 +6,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.*;
@@ -24,6 +25,7 @@ public class RotateToGoal extends Command {
     addRequirements(driveSubsystem);
   }
 
+  private Timer timer = new Timer();
   private PIDController zPidController = new PIDController(0.03, 0.001, 0.001);
 
   private double rotationSetpoint = 9999;
@@ -39,6 +41,7 @@ public class RotateToGoal extends Command {
     zPidController.enableContinuousInput(-180, 180);
     zPidController.setTolerance(0.1);
     SmartDashboard.putNumber("Rotate to Goal:", rotationSetpoint);
+    timer.restart();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -74,6 +77,6 @@ public class RotateToGoal extends Command {
   @Override
   public boolean isFinished() {
 
-    return zPidController.atSetpoint();
+    return zPidController.atSetpoint() && timer.hasElapsed(1.5);
   }
 }

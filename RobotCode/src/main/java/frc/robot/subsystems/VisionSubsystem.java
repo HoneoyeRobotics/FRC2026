@@ -33,14 +33,25 @@ public class VisionSubsystem extends SubsystemBase {
     this.estConsumer = estConsumer;
   }
 
+  // 0.0047625
+
   private PhotonCamera LeftAprilTagCamera = new PhotonCamera("LeftAprilTagCamera");
   private PhotonCamera RightAprilTagCamera = new PhotonCamera("RightAprilTagCamera");
   public static final AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-  //positive yaw to the left
-  public static final Transform3d LeftRobotToCam = new Transform3d(new Translation3d(0, 0.0381, 0.6096),
+  // //positive yaw to the left
+  public static final Transform3d LeftRobotToCam = new Transform3d(new Translation3d(0, 0.0388, 0.6096),
       new Rotation3d(0, 0, 0.436332));
-  public static final Transform3d RightRobotToCam = new Transform3d(new Translation3d(0, -0.0381, 0.6096),
+  public static final Transform3d RightRobotToCam = new Transform3d(new Translation3d(0, -0.0388, 0.6096),
       new Rotation3d(0, 0, -0.436332));
+
+  // // new measured ones
+  // public static final Transform3d LeftRobotToCam = new Transform3d(new
+  // Translation3d(-0.009144, 0.070612, 0.645414),
+  // new Rotation3d(0, 0, 0.436332));
+  // public static final Transform3d RightRobotToCam = new Transform3d(new
+  // Translation3d(-0.009144, -0.007112, 0.645414),
+  // new Rotation3d(0, 0, -0.436332));
+
   private PhotonPoseEstimator LeftPoseEstimator = new PhotonPoseEstimator(kTagLayout, LeftRobotToCam);
 
   private PhotonPoseEstimator RightPoseEstimator = new PhotonPoseEstimator(kTagLayout, RightRobotToCam);

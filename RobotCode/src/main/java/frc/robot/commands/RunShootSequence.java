@@ -56,7 +56,7 @@ public class RunShootSequence extends Command {
     // run the shooter
     // BallHandlingSubsystem.runShooter(0.55);
 
-    // ballHandlingSubsystem.runPickup(0.66);
+    ballHandlingSubsystem.runPickup(0.66);
 
     if (ballHandlingSubsystem.shooterAtVelocity() && ShooterSpunUp == false) {
       if (currentTimer.isRunning() == false)

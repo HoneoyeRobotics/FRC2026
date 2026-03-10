@@ -34,9 +34,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import java.util.List;
 
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -67,15 +64,13 @@ public class RobotContainer {
     // Configure default commands
     driveSubsystem.setDefaultCommand(new TeleopDrive(driveSubsystem, driverController, ButtonBoard));
 
-    NamedCommands.registerCommand("RunShootSequence", new RunShootSequence(BallHandlingSubsystem, driveSubsystem));
-    NamedCommands.registerCommand("TogglePickupSolenoid", new TogglePickupSolenoid(BallHandlingSubsystem));
-
-    NamedCommands.registerCommand("RotateToGoal", new RotateToGoal(driveSubsystem, visionSubsystem));
-
     SmartDashboard.putData("Auto Mode", auto);
-    auto.addOption("Auto 1", new PathPlannerAuto("Auto 1"));
-    auto.addOption("Move Back", new PathPlannerAuto("Move back"));
 
+    SmartDashboard.putData(new AutoJustShootBalls(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
+    SmartDashboard.putData("Go to depot", new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 0.6962, 0));
+    SmartDashboard.putData("Back from Depot", new DriveRobotToCoordinates(driveSubsystem, -0.3, 0, 0, 1.4, 0));
+
+    SmartDashboard.putData(new AutoGetFromDepot(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
   }
 
   /**
@@ -107,8 +102,17 @@ public class RobotContainer {
     // get balls out of column
 
     // run the intake from either controller
-    Trigger shooterTrigger = new Trigger(
-        () -> ButtonBoard.button(10).getAsBoolean() || driverController.a().getAsBoolean())
+    Trigger pickupBallsTrigger = new Trigger(
+        () -> ButtonBoard.button(10).getAsBoolean() ||
+            driverController.a().getAsBoolean() ||
+            driverController.povDown().getAsBoolean() ||
+            driverController.povRight().getAsBoolean() ||
+            driverController.povUp().getAsBoolean() ||
+            driverController.povUpLeft().getAsBoolean() ||
+            driverController.povUpRight().getAsBoolean() ||
+            driverController.povDownLeft().getAsBoolean() ||
+            driverController.povDownRight().getAsBoolean() ||
+            driverController.povLeft().getAsBoolean())
         .whileTrue(new PickupBalls(BallHandlingSubsystem, 0.66));
 
     // spit them all
@@ -124,21 +128,21 @@ public class RobotContainer {
     // -0.5));
     // // move the balls from the bottom into the column
     ButtonBoard.button(5).whileTrue(new RunBottomFeeder(BallHandlingSubsystem,
-    1));
+        1));
 
     // // run the column to bring the balls back into the hopper
     // ButtonBoard.button(5).whileTrue(new RunColumnFeeder(BallHandlingSubsystem,
     // -0.5));
     // run the column so the balls come up to the kicker
     ButtonBoard.button(4).whileTrue(new RunColumnFeeder(BallHandlingSubsystem,
-    0.5));
+        0.5));
 
     // // run the kicker to bring the balls back into the column
     // ButtonBoard.button(4).whileTrue(new RunColumnKicker(BallHandlingSubsystem,
     // -0.5));
     // bring the balls from the column into the shooter
     ButtonBoard.button(8).whileTrue(new RunColumnKicker(BallHandlingSubsystem,
-    0.5));
+        0.5));
 
     // // pull balls back in from shooter into kicker
     // ButtonBoard.button(3).whileTrue(new ManualShootControl(BallHandlingSubsystem,
