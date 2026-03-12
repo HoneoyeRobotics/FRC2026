@@ -133,26 +133,6 @@ public class BallHandlingSubsystem extends SubsystemBase {
     if (ShooterPIDEnabled == false)
       return false;
     return ShooterPIDController.atSetpoint();
-
-    // double setpoint = ShooterPIDController.getSetpoint();
-    // double velocity = ShooterEncoder.getVelocity();
-    // double tolerance = Preferences.getDouble("ShooterTolerance", 50);
-    // double upperTolerance = tolerance;
-    // double lowerTolerance = tolerance;
-    // if (PreviouslyAtSetpoint == false)
-    // lowerTolerance = tolerance / 4;
-    // else
-    // upperTolerance = tolerance * 2;
-
-    // if (velocity >= (setpoint - lowerTolerance) && (velocity <= (setpoint +
-    // upperTolerance))) {
-    // if (PreviouslyAtSetpoint == false) {
-    // ShooterPIDController.setTolerance(tolerance);
-    // PreviouslyAtSetpoint = true;
-    // }
-    // return true;
-    // } else
-    // return false;
   }
 
   public Command setShooterVelocityCommand(double rpm) {

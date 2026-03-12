@@ -8,6 +8,9 @@ import org.photonvision.PhotonCamera;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -72,10 +75,22 @@ public class TeleopDrive extends Command {
 
       double targetYaw = 0.0; // this is the yaw we want to be at
 
-      targetYaw = driveSubsystem.getEstimatedHeading() -
-      (driveSubsystem.getAngleToGoal() * -1);
+      
+      double RotModifier = -1.0;
 
-      zRot = -1.0 * targetYaw * VISION_TURN_kP * Constants.DriveConstants.kMaxAngularSpeed;
+      if (DriverStation.getAlliance().isPresent() &&
+          DriverStation.getAlliance().get() == Alliance.Red) {
+
+        targetYaw =   driveSubsystem.getEstimatedHeading() - (driveSubsystem.getAngleToGoal()) ;
+      } else {
+
+        targetYaw = driveSubsystem.getEstimatedHeading() -
+            (driveSubsystem.getAngleToGoal() * -1);
+      }
+
+      SmartDashboard.putNumber("Goal YAW target", targetYaw);
+
+      zRot = RotModifier * targetYaw * VISION_TURN_kP * Constants.DriveConstants.kMaxAngularSpeed * 0.66;
 
     }
 

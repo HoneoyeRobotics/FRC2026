@@ -45,6 +45,8 @@ public class RunShootSequence extends Command {
     // based on our data from desmos
     ballHandlingSubsystem.setShooterVelocityByDistance(distance);
 
+    SmartDashboard.putString("Auto Progress", "Shoot at distance  " + distance);
+
   }
 
   private boolean ShooterReady = false;

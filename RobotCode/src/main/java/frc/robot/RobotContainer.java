@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -67,10 +68,17 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", auto);
 
     SmartDashboard.putData(new AutoJustShootBalls(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
-    SmartDashboard.putData("Go to depot", new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 0.6962, 0));
-    SmartDashboard.putData("Back from Depot", new DriveRobotToCoordinates(driveSubsystem, -0.3, 0, 0, 1.4, 0));
+    SmartDashboard.putData("Fwd to depot", new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 0.6962, 0, false));
+    
+    SmartDashboard.putData("Rev to depot", new DriveRobotToCoordinates(driveSubsystem, -0.5, 0, 0, 0.6962, 0, false));
+    SmartDashboard.putData("Back from Depot", new DriveRobotToCoordinates(driveSubsystem, -0.3, 0, 0, 1.4, 0, true));
 
+    SmartDashboard.putData(new AutoGetFromPlayer(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
     SmartDashboard.putData(new AutoGetFromDepot(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
+
+    auto.addOption("Get from Depot", new AutoGetFromDepot(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
+    auto.addOption("Get from Human Player", new AutoGetFromPlayer(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
+    auto.addOption("Last Resort Soot", new AutoJustShootBalls(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
   }
 
   /**
@@ -95,8 +103,7 @@ public class RobotContainer {
 
     driverController.y().whileTrue(new DumpBallsOverField(BallHandlingSubsystem, driveSubsystem));
 
-    // driverController.x().whileTrue(new RunCommand(() ->
-    // driveSubsystem.setX(),driveSubsystem));
+    driverController.x().whileTrue(new RunCommand(() -> driveSubsystem.setX(), driveSubsystem));
     // driverController.back().onTrue(new InstantCommand(() ->
     // driveSubsystem.zeroHeading(), driveSubsystem));
     // get balls out of column
@@ -112,7 +119,7 @@ public class RobotContainer {
             driverController.povUpRight().getAsBoolean() ||
             driverController.povDownLeft().getAsBoolean() ||
             driverController.povDownRight().getAsBoolean() ||
-            driverController.povLeft().getAsBoolean())
+            driverController.povDownLeft().getAsBoolean())
         .whileTrue(new PickupBalls(BallHandlingSubsystem, 0.66));
 
     // spit them all

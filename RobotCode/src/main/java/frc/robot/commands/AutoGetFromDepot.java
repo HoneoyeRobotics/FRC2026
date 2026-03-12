@@ -27,7 +27,7 @@ public class AutoGetFromDepot extends SequentialCommandGroup {
         new ParallelDeadlineGroup(        
             //new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 0.8962,0),            
             new SequentialCommandGroup(
-              new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 0.6962,0),           
+              new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 0.6962,0, false).withTimeout(6),           
               new WaitCommand(1),
               new DriveRobot(driveSubsystem, 0, -0.2, 0).withTimeout(0.2),
               new DriveRobot(driveSubsystem, 0, 0.2, 0).withTimeout(0.2)
@@ -35,13 +35,16 @@ public class AutoGetFromDepot extends SequentialCommandGroup {
             new PickupBalls(ballHandlingSubsystem, 0.66)
         ),            
         new ParallelDeadlineGroup(
-            new DriveRobotToCoordinates(driveSubsystem, -0.5, 0, 0, 1.4,0),           
+            new DriveRobotToCoordinates(driveSubsystem, -0.5, 0, 0, 1.4,0, true),           
             new PickupBalls(ballHandlingSubsystem, 0.66)
 
         ),
         new RotateToGoal(driveSubsystem, visionSubsystem).withTimeout(1.5),
-        new DriveRobot(driveSubsystem, 0.5, 0, 0).withTimeout(0.5),        
-        new RunShootSequence(ballHandlingSubsystem, driveSubsystem).withTimeout(8)
+        new DriveRobot(driveSubsystem, 0.5, 0, 0).withTimeout(0.5),    
+        new ParallelDeadlineGroup(
+          new RunShootSequence(ballHandlingSubsystem, driveSubsystem).withTimeout(8),
+          new SequentialCommandGroup(new WaitCommand(4), new TogglePickupSolenoid(ballHandlingSubsystem), new WaitCommand(0.5), new TogglePickupSolenoid(ballHandlingSubsystem))
+        )
 
     );
   }

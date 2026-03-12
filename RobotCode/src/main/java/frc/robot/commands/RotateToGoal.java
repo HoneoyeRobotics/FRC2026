@@ -42,6 +42,10 @@ public class RotateToGoal extends Command {
     zPidController.setTolerance(0.1);
     SmartDashboard.putNumber("Rotate to Goal:", rotationSetpoint);
     timer.restart();
+
+    
+    SmartDashboard.putString("Auto Progress", "Rotate to " + rotationSetpoint);
+
   }
 
   // Called every time the scheduler runs while the command is scheduled.

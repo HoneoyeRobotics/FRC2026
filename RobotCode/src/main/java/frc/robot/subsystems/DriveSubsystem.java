@@ -31,6 +31,9 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.lib.Perspective;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import static edu.wpi.first.units.Units.Degree;
+
+import java.text.DecimalFormat;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -101,7 +104,7 @@ public class DriveSubsystem extends SubsystemBase {
         getModulePositions(),
         new Pose2d(),
         stateStdDevs,
-        visionStdDevs);    
+        visionStdDevs);
 
   }
 
@@ -133,10 +136,12 @@ public class DriveSubsystem extends SubsystemBase {
             rearRight.getPosition()
         });
 
-    SmartDashboard.putNumber("Est Distance", getDistanceFromGoal());
+    double estDistance = getDistanceFromGoal();
+    DecimalFormat df = new DecimalFormat("#.###");
+    SmartDashboard.putString("Est Distance", df.format(estDistance));
     SmartDashboard.putNumber("PoseEst X", EstimatedPosition.getX());
     SmartDashboard.putNumber("PoseEst Y", EstimatedPosition.getY());
-    SmartDashboard.putNumber("PoseEst Rot", EstimatedPosition.getRotation().getDegrees());
+    SmartDashboard.putString("PoseEst Rot", df.format(EstimatedPosition.getRotation().getDegrees()));
 
     SmartDashboard.putNumber("Heading", getCompassHeading());
 
@@ -231,6 +236,12 @@ public class DriveSubsystem extends SubsystemBase {
       rot /= 4;
     }
 
+    if (fieldRelative && DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+      // currentRotation = currentRotation.rotateBy(Rotation2d.kPi);
+      xSpeed *= -1;
+      ySpeed *= -1;
+    }
+
     SmartDashboard.putBoolean("GoFast", GoFast);
     SmartDashboard.putNumber("Drive xSpeed", xSpeed);
     SmartDashboard.putNumber("Drive ySpeed", ySpeed);
@@ -243,15 +254,12 @@ public class DriveSubsystem extends SubsystemBase {
 
     Rotation2d currentRotation = poseEstimator.getEstimatedPosition().getRotation();
 
-    if(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
-      currentRotation = currentRotation.rotateBy(Rotation2d.kPi);
-    }
-
-
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-             ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, currentRotation)
-            //? Perspective.OPERATOR.toPerspectiveSpeeds( new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered), currentRotation)
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, currentRotation)
+            // ? Perspective.OPERATOR.toPerspectiveSpeeds( new
+            // ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered),
+            // currentRotation)
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -259,6 +267,8 @@ public class DriveSubsystem extends SubsystemBase {
     frontRight.setDesiredState(swerveModuleStates[1]);
     rearLeft.setDesiredState(swerveModuleStates[2]);
     rearRight.setDesiredState(swerveModuleStates[3]);
+
+    SmartDashboard.setDefaultBoolean("Swap Red Rotation", false);
   }
 
   /**
@@ -340,14 +350,29 @@ public class DriveSubsystem extends SubsystemBase {
     if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
       // 16.54m total field length, so go to the other and and go back.
       goalX = 16.54 - goalX;
-    } 
+    }
+
+    SmartDashboard.putNumber("GoalY", goalY);
+    SmartDashboard.putNumber("Goal X", goalX);
 
     double y = EstimatedPose.getY();
     double x = EstimatedPose.getX();
 
-    double angleRad = Math.atan((goalY - y) / (goalX- x)) * -1;
+    DecimalFormat df = new DecimalFormat("#.###");
+    double angleRad = Math.atan((goalY - y) / (goalX - x)) * -1;
     double angleDeg = Math.toDegrees(angleRad);
+        SmartDashboard.putString("AngleToGoal pre", df.format(angleDeg));
 
+    if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+      // && SmartDashboard.getBoolean("Swap Red Rotation", false)) {
+      if (angleDeg < 0)
+        angleDeg = -180 - angleDeg;
+      if (angleDeg == 0)
+        angleDeg = 180;
+      if (angleDeg > 0)
+        angleDeg = 180- angleDeg ;
+    } 
+    SmartDashboard.putString("AngleToGoal", df.format(angleDeg));
     return angleDeg;
 
   }

@@ -19,27 +19,31 @@ public class DriveRobotToCoordinates extends Command {
 
   private final double xCoord;
   private final double yCoord;
+  private final boolean CheckGreater;
 
   /** Creates a new CenterOnAprilTag. */
   public DriveRobotToCoordinates(DriveSubsystem driveSubsystem, double xSpeed, double ySpeed, double zRotation,
-      double xCoord, double yCoord) {
+      double xCoord, double yCoord, boolean CheckGreater) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.driveSubsystem = driveSubsystem;
     this.xSpeed = xSpeed;
     this.ySpeed = ySpeed;
     this.zRotation = zRotation;
+    this.CheckGreater = CheckGreater;
     this.xCoord = xCoord;
     this.yCoord = yCoord;
 
-    if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red)
+    if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+      CheckGreater = !CheckGreater;
       xCoord = 16.54 - xCoord;
-
+    }
     addRequirements(driveSubsystem);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    SmartDashboard.putString("Auto Progress", "Drive " + xSpeed + " to " + xCoord);
 
   }
 
@@ -61,29 +65,38 @@ public class DriveRobotToCoordinates extends Command {
   public boolean isFinished() {
     var pose = driveSubsystem.getEstimatedPose();
 
+    if (CheckGreater) {
+
+      SmartDashboard.putString("DriveToCoordinates", pose.getX() + " > " + xCoord);
+      return pose.getX() > xCoord;
+    } else {
+      SmartDashboard.putString("DriveToCoordinates", pose.getX() + " < " + xCoord);
+      return pose.getX() < xCoord;
+    }
     // if current position is further than we want to go on the X, we are done.
 
     // if we are red, pose > xcoord
-    if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+    // if (DriverStation.getAlliance().isPresent() &&
+    // DriverStation.getAlliance().get() == Alliance.Red) {
 
-      if (xSpeed > 0) {
-        SmartDashboard.putString("DriveToCoordinates", pose.getX() + " > " + xCoord);
-        return pose.getX() > xCoord;
-      } else {
-        SmartDashboard.putString("DriveToCoordinates", pose.getX() + " <>> " + xCoord);
-        return pose.getX() < xCoord;
-      }
-    } else
-    // if we are blue, pose < xcoord
-    {
-      if (xSpeed > 0) {
-        SmartDashboard.putString("DriveToCoordinates", pose.getX() + " < " + xCoord);
-        return pose.getX() < xCoord;
-      } else {
-        SmartDashboard.putString("DriveToCoordinates", pose.getX() + " < " + xCoord);
-        return pose.getX() > xCoord;
-      }
-    }
+    // if (xSpeed > 0) {
+    // SmartDashboard.putString("DriveToCoordinates", pose.getX() + " > " + xCoord);
+    // return pose.getX() > xCoord;
+    // } else {
+    // SmartDashboard.putString("DriveToCoordinates", pose.getX() + " < " + xCoord);
+    // return pose.getX() < xCoord;
+    // }
+    // } else
+    // // if we are blue, pose < xcoord
+    // {
+    // if (xSpeed > 0) {
+    // SmartDashboard.putString("DriveToCoordinates", pose.getX() + " < " + xCoord);
+    // return pose.getX() < xCoord;
+    // } else {
+    // SmartDashboard.putString("DriveToCoordinates", pose.getX() + " < " + xCoord);
+    // return pose.getX() > xCoord;
+    // }
+    // }
 
   }
 }
