@@ -40,7 +40,8 @@ public class AutoGetFromDepot extends SequentialCommandGroup {
 
         ),
         new RotateToGoal(driveSubsystem, visionSubsystem).withTimeout(1.5),
-        new DriveRobot(driveSubsystem, 0.5, 0, 0).withTimeout(0.5),    
+        new DriveRobot(driveSubsystem, 0.5, 0, 0).withTimeout(0.5),          
+        new RotateToGoal(driveSubsystem, visionSubsystem).withTimeout(1),
         new ParallelDeadlineGroup(
           new RunShootSequence(ballHandlingSubsystem, driveSubsystem).withTimeout(8),
           new SequentialCommandGroup(new WaitCommand(4), new TogglePickupSolenoid(ballHandlingSubsystem), new WaitCommand(0.5), new TogglePickupSolenoid(ballHandlingSubsystem))

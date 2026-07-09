@@ -61,7 +61,7 @@ public class RobotContainer {
     field = new Field2d();
     // Configure the button bindings
     configureButtonBindings();
-
+    SmartDashboard.putData(BallHandlingSubsystem);
     // Configure default commands
     driveSubsystem.setDefaultCommand(new TeleopDrive(driveSubsystem, driverController, ButtonBoard));
 
@@ -69,7 +69,7 @@ public class RobotContainer {
 
     SmartDashboard.putData(new AutoJustShootBalls(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
     SmartDashboard.putData("Fwd to depot", new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 0.6962, 0, false));
-    
+
     SmartDashboard.putData("Rev to depot", new DriveRobotToCoordinates(driveSubsystem, -0.5, 0, 0, 0.6962, 0, false));
     SmartDashboard.putData("Back from Depot", new DriveRobotToCoordinates(driveSubsystem, -0.3, 0, 0, 1.4, 0, true));
 
@@ -77,8 +77,11 @@ public class RobotContainer {
     SmartDashboard.putData(new AutoGetFromDepot(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
 
     auto.addOption("Get from Depot", new AutoGetFromDepot(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
-    auto.addOption("Get from Human Player", new AutoGetFromPlayer(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
+    auto.addOption("Get from Human Player",
+        new AutoGetFromPlayer(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
     auto.addOption("Last Resort Soot", new AutoJustShootBalls(driveSubsystem, BallHandlingSubsystem, visionSubsystem));
+
+    
   }
 
   /**
@@ -134,8 +137,8 @@ public class RobotContainer {
     // ButtonBoard.button(6).whileTrue(new RunBottomFeeder(BallHandlingSubsystem,
     // -0.5));
     // // move the balls from the bottom into the column
-    ButtonBoard.button(5).whileTrue(new RunBottomFeeder(BallHandlingSubsystem,
-        1));
+    // ButtonBoard.button(5).whileTrue(new RunBottomFeeder(BallHandlingSubsystem,
+    // 1));
 
     // // run the column to bring the balls back into the hopper
     // ButtonBoard.button(5).whileTrue(new RunColumnFeeder(BallHandlingSubsystem,

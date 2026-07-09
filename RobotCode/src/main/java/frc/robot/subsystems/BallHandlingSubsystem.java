@@ -149,7 +149,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
 
     // THIS IS FROM OUR GOOGLE DOCUMENT
     TargetRPM = 132.23417 * distance * distance - 375.3763 * distance + 2820.15427;
-    TargetRPM = TargetRPM *  1.015;
+    TargetRPM = TargetRPM *  1.02;
 
     if(distance < 3)
       TargetRPM = TargetRPM * 1.065;
@@ -219,6 +219,7 @@ public class BallHandlingSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Shooter RPM", ShooterEncoder.getVelocity());
     SmartDashboard.putNumber("Shooter Setpoint", ShooterPIDController.getSetpoint());
     SmartDashboard.putBoolean("Shooter At Setpoint", shooterAtVelocity());
+    SmartDashboard.putBoolean("Shooter Above Setpoint", ShooterEncoder.getVelocity() >ShooterPIDController.getSetpoint());
     SmartDashboard.putNumber("Shooter Tolerance", ShooterPIDController.getErrorTolerance());
     SmartDashboard.putBoolean("PID Enabled", ShooterPIDEnabled);
     if (ShooterPIDEnabled == true) {

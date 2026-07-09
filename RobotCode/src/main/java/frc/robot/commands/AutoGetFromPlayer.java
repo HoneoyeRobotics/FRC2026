@@ -33,7 +33,8 @@ public class AutoGetFromPlayer extends SequentialCommandGroup {
         new DriveRobotToCoordinates(driveSubsystem, 0.5, 0, 0, 2.4, 0, true).withTimeout(2),
         new RotateToGoal(driveSubsystem, visionSubsystem).withTimeout(1.5),
         new DriveRobot(driveSubsystem, 0.5, 0, 0).withTimeout(1),
-        new RunShootSequence(ballHandlingSubsystem, driveSubsystem).withTimeout(8)
+        new RunShootSequence(ballHandlingSubsystem, driveSubsystem).withTimeout(8),
+        new RotateToGoal(driveSubsystem, visionSubsystem).withTimeout(1)
 
     );
   }

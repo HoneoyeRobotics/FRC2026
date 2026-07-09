@@ -60,7 +60,7 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kBackRightChassisAngularOffset);
 
   // The gyro sensor
-  private final Pigeon2 gyro = new Pigeon2(2);
+  private final Pigeon2 gyro = new Pigeon2(33);
   private final SwerveDrivePoseEstimator poseEstimator;
 
   // Odometry class for tracking robot pose
@@ -142,7 +142,7 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("PoseEst X", EstimatedPosition.getX());
     SmartDashboard.putNumber("PoseEst Y", EstimatedPosition.getY());
     SmartDashboard.putString("PoseEst Rot", df.format(EstimatedPosition.getRotation().getDegrees()));
-
+    SmartDashboard.putString("Alliance Rot", df.format(getEstimatedHeadingByAlliance()));
     SmartDashboard.putNumber("Heading", getCompassHeading());
 
   }
@@ -331,6 +331,17 @@ public class DriveSubsystem extends SubsystemBase {
     return EstimatedPose.getRotation().getDegrees();
   }
 
+  public double getEstimatedHeadingByAlliance() {
+    var EstimatedPose = poseEstimator.getEstimatedPosition();
+
+    var alliance = DriverStation.getAlliance();
+    if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+      return MathUtil.inputModulus(EstimatedPose.getRotation().getDegrees() + 180, -180, 180);
+    } else {
+      return EstimatedPose.getRotation().getDegrees();
+    }
+  }
+
   public double getOffsetToGoal() {
     var EstimatedPose = poseEstimator.getEstimatedPosition();
 
@@ -361,17 +372,17 @@ public class DriveSubsystem extends SubsystemBase {
     DecimalFormat df = new DecimalFormat("#.###");
     double angleRad = Math.atan((goalY - y) / (goalX - x)) * -1;
     double angleDeg = Math.toDegrees(angleRad);
-        SmartDashboard.putString("AngleToGoal pre", df.format(angleDeg));
+    SmartDashboard.putString("AngleToGoal pre", df.format(angleDeg));
 
-    if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
-      // && SmartDashboard.getBoolean("Swap Red Rotation", false)) {
-      if (angleDeg < 0)
-        angleDeg = -180 - angleDeg;
-      if (angleDeg == 0)
-        angleDeg = 180;
-      if (angleDeg > 0)
-        angleDeg = 180- angleDeg ;
-    } 
+    // if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+    //   // && SmartDashboard.getBoolean("Swap Red Rotation", false)) {
+    //   if (angleDeg < 0)
+    //     angleDeg = -180 - angleDeg;
+    //   if (angleDeg == 0)
+    //     angleDeg = 180;
+    //   if (angleDeg > 0)
+    //     angleDeg = 180 - angleDeg;
+    // }
     SmartDashboard.putString("AngleToGoal", df.format(angleDeg));
     return angleDeg;
 

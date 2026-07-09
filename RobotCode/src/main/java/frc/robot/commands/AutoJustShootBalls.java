@@ -21,7 +21,7 @@ public class AutoJustShootBalls extends SequentialCommandGroup {
     addCommands(
         new TogglePickupSolenoid(ballHandlingSubsystem),
         new DriveRobot(driveSubsystem, 0.5, 0, 0).withTimeout(1),
-        new RotateToGoal(driveSubsystem, visionSubsystem).withTimeout(1.5),
+        new RotateToGoal(driveSubsystem, visionSubsystem).withTimeout(5),
         new RunShootSequence(ballHandlingSubsystem, driveSubsystem).withTimeout(8)
 
     );

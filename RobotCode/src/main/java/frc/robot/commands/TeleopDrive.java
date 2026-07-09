@@ -78,20 +78,32 @@ public class TeleopDrive extends Command {
       
       double RotModifier = -1.0;
 
-      if (DriverStation.getAlliance().isPresent() &&
-          DriverStation.getAlliance().get() == Alliance.Red) {
 
-        targetYaw =   driveSubsystem.getEstimatedHeading() - (driveSubsystem.getAngleToGoal()) ;
-      } else {
-
-        targetYaw = driveSubsystem.getEstimatedHeading() -
+       targetYaw = driveSubsystem.getEstimatedHeadingByAlliance() -
             (driveSubsystem.getAngleToGoal() * -1);
-      }
 
+      // if (DriverStation.getAlliance().isPresent() &&
+      //     DriverStation.getAlliance().get() == Alliance.Red) {
+
+      //   targetYaw =   driveSubsystem.getEstimatedHeading() - (driveSubsystem.getAngleToGoal()) ;
+      // } else {
+
+      //   targetYaw = driveSubsystem.getEstimatedHeading() -
+      //       (driveSubsystem.getAngleToGoal() * -1);
+      // }
+
+      // targetYaw = MathUtil.applyDeadband(targetYaw, 3);
       SmartDashboard.putNumber("Goal YAW target", targetYaw);
 
       zRot = RotModifier * targetYaw * VISION_TURN_kP * Constants.DriveConstants.kMaxAngularSpeed * 0.66;
 
+    }
+
+    
+    if(coDriverJoystick.button(5).getAsBoolean()){
+      xSpeed = xSpeed / 3;
+      ySpeed = ySpeed / 3;
+      
     }
 
     // normal driving;

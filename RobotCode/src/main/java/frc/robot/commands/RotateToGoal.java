@@ -51,7 +51,7 @@ public class RotateToGoal extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double currentAngle = driveSubsystem.getEstimatedHeading();
+    double currentAngle = driveSubsystem.getEstimatedHeadingByAlliance();
 
     double rotatePower = zPidController.calculate(currentAngle);
 
