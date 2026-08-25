@@ -31,7 +31,7 @@ public class DumpBallsOverField extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    double distance = 4;
+    double distance = 2;
     // // calculate target rpm by distance
     // // TargetRPM = 763 + (217*distance) + (-6.91*distance * distance); //based on
     // // 65deg

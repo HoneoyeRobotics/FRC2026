@@ -9,6 +9,7 @@ import org.photonvision.PhotonCamera;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -57,7 +58,7 @@ public class TeleopDrive extends Command {
     double RightxSpeed = -MathUtil.applyDeadband(driverController.getRightY(), OIConstants.kDriveDeadband);
     double RightySpeed = -MathUtil.applyDeadband(driverController.getRightX(), OIConstants.kDriveDeadband);
 
-    boolean fieldRelative = true;
+    boolean fieldRelative = Preferences.getBoolean("FieldRelative", true);
 
     // if the left stick is all zero, but the right stick is not, then use the robot
     // relative drive.
